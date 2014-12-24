@@ -7,7 +7,19 @@
 #ifndef __TRACE_DEBUG_HPP
 #define __TRACE_DEBUG_HPP
 
-// See here an example of the output:
+// See here an example of usage in source code:
+
+// In file main.cpp @ line 368
+// DISPLAY_DEBUG_VALUE(f1());
+// In file f1.cpp @ line 83
+// DISPLAY_DEBUG_VALUE(f2());
+// In file f2.cpp @ line 651
+// DISPLAY_DEBUG_VALUE(f3());
+// In file f2.cpp @ line 660
+// DISPLAY_DEBUG_VALUE(value);
+
+// Output will be:
+
 //Processing f1() From main.cpp:368 (main)
 // Processing f2() From f1.cpp:83 (f1)
 // Processing f3() From f2.cpp:651 (f2)
@@ -16,15 +28,7 @@
 // ->f2.cpp:660 (f2) value = 1
 // ->f1.cpp:83 (f1) f2() = 1
 //->main.cpp:368 (main) f1() = 1
-// Source code:
-// main.cpp @ line 368
-// DISPLAY_DEBUG_VALUE(f1());
-// f1.cpp @ line 83
-// DISPLAY_DEBUG_VALUE(f2());
-// f2.cpp @ line 651
-// DISPLAY_DEBUG_VALUE(f3());
-// f2.cpp @ line 660
-// DISPLAY_DEBUG_VALUE(value);
+
 
 #include <map>
 #include <string>
