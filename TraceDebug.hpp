@@ -35,7 +35,7 @@
 // Activate traces
 #define DISPLAY_DEBUG_ACTIVE_TRACE DebugTrace::ActiveTrace(true)
 // Deactivate traces: any call to any debug macro will not be displaying anything. However the hierarchy is kept up to date.
-// When traces are activated agin the lastcomputed hierarchy will be used to insert the right number of blank spaces
+// When traces are activated back the last computed hierarchy will be used to insert the right number of blank spaces
 #define DISPLAY_DEBUG_DEACTIVE_TRACE DebugTrace::ActiveTrace(false)
 // Display a value specifying the expression, its value and many blank spaces defining the deepness of the hierarchy,
 // the filename, line number and function name are all displayed.
@@ -51,7 +51,7 @@
     if(DebugTrace::IsTraceActive()) { std::cout << message << std::endl; }
 // Display a value specifying the expression, its value and many blank spaces defining the deepness of the hierarchy
 // deeper hierarchy will however not be displayed
-#define DISPLAY_DEBUG_VALUE_NON_HER(value) \
+#define DISPLAY_DEBUG_VALUE_NON_HIER(value) \
     DebugTrace TOKENPASTE_EXPAND(__Unused, __LINE__)(__func__, __FILE__, __LINE__); \
     if(DebugTrace::IsTraceActive()) { \
       DISPLAY_DEBUG_DEACTIVE_TRACE; \
