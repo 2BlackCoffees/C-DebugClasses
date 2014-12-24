@@ -1,0 +1,10 @@
+// //////////////////////////////////////////////////////////////////////
+//
+// This file is under the license http://www.apache.org/licenses/LICENSE-2.0
+//
+// //////////////////////////////////////////////////////////////////////
+
+#include "TraceDebug.hpp"
+int DebugTrace::deep = 0;
+bool DebugTrace::traceActive = true;
+std::map<std::string, int> DebugTrace::mapFileNameToLine;
