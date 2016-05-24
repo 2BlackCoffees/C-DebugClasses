@@ -4,8 +4,8 @@
 //
 // //////////////////////////////////////////////////////////////////////
 
-#ifdef ENABLE_TRACE_DEBUG
 #include "TraceDebug.hpp"
+#ifdef ENABLE_TRACE_DEBUG
 int DebugTrace::debugPrintDeepness = 0;
 bool DebugTrace::traceActive = true;
 std::map<std::string, int> DebugTrace::mapFileNameToLine;

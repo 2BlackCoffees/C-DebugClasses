@@ -63,7 +63,7 @@
 #include <chrono>
 #include <sstream>
 
-//#define ENABLE_TRACE_DEBUG
+#define ENABLE_TRACE_DEBUG
 #ifdef ENABLE_TRACE_DEBUG
   #ifdef _WIN32
     #define __func__ __FUNCTION__
