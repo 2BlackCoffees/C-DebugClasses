@@ -8,53 +8,6 @@
 #ifndef __TRACE_DEBUG_HPP
 #define __TRACE_DEBUG_HPP
 
-// See here an example of usage in source code:
-
-// In file main.cpp @ line 368
-// DISPLAY_DEBUG_VALUE(f1());
-// In file f1.cpp @ line 83
-// DISPLAY_DEBUG_VALUE(f2());
-// In file f2.cpp @ line 651
-// DISPLAY_DEBUG_VALUE(f3());
-// In file f2.cpp @ line 660
-// DISPLAY_DEBUG_VALUE(value);
-
-// Output will be:
-
-//Processing f1() From main.cpp:368 (main)
-// Processing f2() From f1.cpp:83 (f1)
-// Processing f3() From f2.cpp:651 (f2)
-// ->f2.cpp:651 (f2) f3() = 1
-// Processing value From f2.cpp:660 (f2)
-// ->f2.cpp:660 (f2) value = 1
-// ->f1.cpp:83 (f1) f2() = 1
-//->main.cpp:368 (main) f1() = 1
-
-// Analyze of performances
-// -----------------------
-
-// void ClassName::anyFct() {
-//   START_TRACE_PERFORMANCE(my_unique_id);
-//   /* function body */
-// }
-
-// Will produce
-// "ClassName::anyFct (my_unique_id) filename.cpp:362 (Full elapsed: 398.000000 ms), End measure - Start measure = 3.000000 ms"
-
-// Nested functions can be analyzed as well and any trace point can be easily added:
-
-// void ClassName::anyFct() {
-//   START_TRACE_PERFORMANCE(my_unique_id);
-//   for (...) {
-//     START_TRACE_PERFORMANCE(my_unique_id1);
-//     // code here
-//     ADD_TRACE_PERFORMANCE(my_unique_id1, "User information");
-//     // code here
-//     Usage of my_unique_id instead of my_unique_id1 is possible too: many information will be provided on one line
-//   }
-//   /* function body */
-// }
-
 #include <map>
 #include <utility>
 #include <string>
