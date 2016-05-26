@@ -79,7 +79,7 @@
     #define UNIT_TRACE_DEBUG " ms"
     #define UNIT_TRACE_TEMPLATE_TYPE std::milli
   #endif
-  #define USE_QT_DEBUG
+  //#define USE_QT_DEBUG
   #ifdef USE_QT_DEBUG
     #include <QDebug>
   #endif

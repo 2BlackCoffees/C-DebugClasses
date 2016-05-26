@@ -24,11 +24,11 @@ DebugTrace::DebugTrace(const std::string& functionName,
                        int lineNumber,
                        const std::string& uniqueKey)
 {
-  keyDebugPerformanceToErase = uniqueKey;
+  keyDebugPerformanceToErase = GetUniqueKey(fileName, functionName, uniqueKey);
   debugPerformanceMustBeDisplayed = true;
   ++debugPrintDeepness;
-  lineHeader = DebugTrace::getSpaces() + functionName + " (" + uniqueKey + ") " +
-      fileName + ":" + std::to_string(lineNumber);
+  lineHeader = fileName + ":" + std::to_string(lineNumber) + " (" +
+      functionName + ") [" + uniqueKey + "]";
   AddTrace(std::chrono::steady_clock::now(), "Start measure");
 }
 
@@ -126,9 +126,9 @@ std::string DebugTrace::GetPerformanceResults() {
   auto now = std::chrono::steady_clock::now();
   auto performanceInfos = mapFileNameFunctionNameToVectorTimingInfo[keyDebugPerformanceToErase];
 
-  std::string tmp = lineHeader + " (Full elapsed: " +
-      std::to_string(std::chrono::duration <double, std::milli> (now - firstAccess).count()) +
-      std::string(UNIT_TRACE_DEBUG) + ")";
+  std::string tmp = DebugTrace::getSpaces() + " (Full elapsed: " +
+      std::to_string(std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> (now - firstAccess).count()) +
+      std::string(UNIT_TRACE_DEBUG) + ") " + lineHeader;
   auto size = performanceInfos.size() - 1;
   if(size > 0) {
     for(decltype(size) index = 0; index < size; ++index)
@@ -139,16 +139,17 @@ std::string DebugTrace::GetPerformanceResults() {
       {
         tmp += ", ";
       }
-      tmp += valueMax.first + " - " + valueMin.first + " = ";
-      tmp +=
-          std::to_string(std::chrono::duration <double, std::milli> (
-                           valueMax.second - valueMin.second).count()) + std::string(UNIT_TRACE_DEBUG);
+      tmp += "<" + valueMax.first + "> - <" + valueMin.first + "> = " +
+          std::to_string(
+            std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> (
+              valueMax.second - valueMin.second).count()) +
+          std::string(UNIT_TRACE_DEBUG);
     }
     if(size > 1)
     {
       const auto& valueMin = performanceInfos[0];
       const auto& valueMax = performanceInfos[size];
-      tmp += ", Full time: " + std::to_string(std::chrono::duration <double, std::milli> (
+      tmp += ", Full time: " + std::to_string(std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> (
                            valueMax.second - valueMin.second).count()) + std::string(UNIT_TRACE_DEBUG);
     }
   } else {
@@ -158,18 +159,49 @@ std::string DebugTrace::GetPerformanceResults() {
 }
 
 //cl /EHsc TraceDebug.cpp
-//#define TRACE_DEBUG_HPP_DEBUG_LOCAL
+#define TRACE_DEBUG_HPP_DEBUG_LOCAL
 #ifdef TRACE_DEBUG_HPP_DEBUG_LOCAL
+int f3() {
+  START_TRACE_PERFORMANCE(f3);
+  int a = 5;
+  DISPLAY_IMMEDIATE_DEBUG_VALUE(a);
+  return a;  
+}
+int f2() {
+  START_TRACE_PERFORMANCE(f2);
+  DISPLAY_DEBUG_VALUE(f3());
+  return 2;
+}
+int f1() {
+  START_TRACE_PERFORMANCE(f1);
+  DISPLAY_DEBUG_VALUE(f2() - 1);
+  return 1;
+}
 void main()
 {
-  START_TRACE_PERFORMANCE(testJP);
-  auto val1 = std::chrono::steady_clock::now();
-  std::cout << "Hello, world!" << std::endl;
-  ADD_TRACE_PERFORMANCE(testJP, testJP1Val1);
-  std::cout << "Hello, world 2!" << std::endl;
-  auto val2 = std::chrono::steady_clock::now();
-  std::cout << "val 2 - val1 = " << std::chrono::duration <double, std::milli> (
-                           val2 - val1).count() << std::endl;
+  START_TRACE_PERFORMANCE(main);
+  DISPLAY_DEBUG_VALUE(f1());
+  ADD_TRACE_PERFORMANCE(main, "This is the middle");
+  f2();
 }
+
+/* This program will output:
+  Processing f1()  From TraceDebug.cpp:183 (main)
+      Processing f2() - 1  From TraceDebug.cpp:177 (f1)
+          Processing f3()  From TraceDebug.cpp:172 (f2)
+              TraceDebug.cpp:167 (f3)  a = 5
+           (Full elapsed: 0.000000 ms) TraceDebug.cpp:165 (f3) [f3], <End measure> - <Start measure> = 2.000200 ms
+          ->TraceDebug.cpp:172 (f2)  f3() = 5
+       (Full elapsed: 5.000500 ms) TraceDebug.cpp:171 (f2) [f2], <End measure> - <Start measure> = 9.000900 ms
+      ->TraceDebug.cpp:177 (f1)  f2() - 1 = 1
+   (Full elapsed: 11.001100 ms) TraceDebug.cpp:176 (f1) [f1], <End measure> - <Start measure> = 17.001700 ms
+  ->TraceDebug.cpp:183 (main)  f1() = 1
+      Processing f3()  From TraceDebug.cpp:172 (f2)
+          TraceDebug.cpp:167 (f3)  a = 5
+       (Full elapsed: 20.002000 ms) TraceDebug.cpp:165 (f3) [f3], <End measure> - <Start measure> = 2.000200 ms
+      ->TraceDebug.cpp:172 (f2)  f3() = 5
+   (Full elapsed: 25.002500 ms) TraceDebug.cpp:171 (f2) [f2], <End measure> - <Start measure> = 9.000900 ms
+ (Full elapsed: 29.002900 ms) TraceDebug.cpp:182 (main) [main], <This is the middle> - <Start measure> = 25.002500 ms, <End measure> - <This is the middle> = 13.001300 ms, Full time: 38.003800 ms
+*/
 #endif
 #endif
