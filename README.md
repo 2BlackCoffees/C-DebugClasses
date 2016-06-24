@@ -47,41 +47,43 @@ void main()
 
 Provides following output:
 
->  Processing f1()  From TraceDebug.cpp:225 (main)
->      Processing f2() - 1  From TraceDebug.cpp:216 (f1)
->          Processing f3()  From TraceDebug.cpp:211 (f2)
->              TraceDebug.cpp:206 (f3)  a = 5
->           (Full elapsed: 0.000000 ms) TraceDebug.cpp:204 (f3) [f3], <End measure> - <Start measure> = 2.000000 ms
->          ->TraceDebug.cpp:211 (f2)  f3() = 5
->       (Full elapsed: 8.000000 ms) TraceDebug.cpp:210 (f2) [f2], <End measure> - <Start measure> = 13.000000 ms
->      ->TraceDebug.cpp:216 (f1)  f2() - 1 = 1
->   (Full elapsed: 16.000000 ms) TraceDebug.cpp:215 (f1) [f1], <End measure> - <Start measure> = 25.000000 ms
->  ->TraceDebug.cpp:225 (main)  f1() = 1
->      Processing f3()  From TraceDebug.cpp:211 (f2)
->          TraceDebug.cpp:206 (f3)  a = 5
->       (Full elapsed: 32.000000 ms) TraceDebug.cpp:204 (f3) [f3], <End measure> - <Start measure> = 2.000000 ms
->      ->TraceDebug.cpp:211 (f2)  f3() = 5
->   (Full elapsed: 40.000000 ms) TraceDebug.cpp:210 (f2) [f2], <End measure> - <Start measure> = 13.000000 ms
-> (Full elapsed: 45.000000 ms) TraceDebug.cpp:224 (main) [main], <This is the middle> - <Start measure> = 39.000000 ms, <End measure> - <This is the middle> = 18.000000 ms, Full time: 57.000000 ms
->
->
->  **** Measures with cache enabled ****
-> 
->  Processing f1()  From TraceDebug.cpp:235 (main)
->      Processing f2() - 1  From TraceDebug.cpp:216 (f1)
->          Processing f3()  From TraceDebug.cpp:211 (f2)
->              TraceDebug.cpp:206 (f3)  a = 5
->          ->TraceDebug.cpp:211 (f2)  f3() = 5
->      ->TraceDebug.cpp:216 (f1)  f2() - 1 = 1
->  ->TraceDebug.cpp:235 (main)  f1() = 1
->      Processing f3()  From TraceDebug.cpp:211 (f2)
->          TraceDebug.cpp:206 (f3)  a = 5
->      ->TraceDebug.cpp:211 (f2)  f3() = 5
->           (Full elapsed: 73.000000 ms) TraceDebug.cpp:204 (f3) [f3], <End measure> - <Start measure> = 3.000000 ms
->       (Full elapsed: 75.000000 ms) TraceDebug.cpp:210 (f2) [f2], <End measure> - <Start measure> = 9.000000 ms
->   (Full elapsed: 77.000000 ms) TraceDebug.cpp:215 (f1) [f1], <End measure> - <Start measure> = 15.000000 ms
->       (Full elapsed: 84.000000 ms) TraceDebug.cpp:204 (f3) [f3], <End measure> - <Start measure> = 2.000000 ms
->   (Full elapsed: 86.000000 ms) TraceDebug.cpp:210 (f2) [f2], <End measure> - <Start measure> = 7.000000 ms
-> (Full elapsed: 86.000000 ms) TraceDebug.cpp:234 (main) [main], <This is the middle> - <Start measure> = 21.000000 ms, <End measure> - <This is the middle> = 7.000000 ms, Full time: 28.000000 ms
-> (Full elapsed: 86.000000 ms) TraceDebug.cpp:234 (main) [main], <This is the middle> - <Start measure> = 21.000000 ms, <End measure> - <This is the middle> = 7.000000 ms, Full time: 28.000000 ms
-> (Full elapsed: 130.000000 ms) TraceDebug.cpp:234 (main) [main], <This is the middle> - <Start measure> = 21.000000 ms, <End measure> - <This is the middle> = 7.000000 ms, <Start Printing cache> - <End measure> = 0.000000 ms, <Done Printing cache> - <Start Printing cache> = 44.000000 ms, Full time: 72.000000 ms
+```
+  Processing f1()  From TraceDebug.cpp:225 (main)
+      Processing f2() - 1  From TraceDebug.cpp:216 (f1)
+          Processing f3()  From TraceDebug.cpp:211 (f2)
+              TraceDebug.cpp:206 (f3)  a = 5
+           (Full elapsed: 0.000000 ms) TraceDebug.cpp:204 (f3) [f3], <End measure> - <Start measure> = 2.000000 ms
+          ->TraceDebug.cpp:211 (f2)  f3() = 5
+       (Full elapsed: 8.000000 ms) TraceDebug.cpp:210 (f2) [f2], <End measure> - <Start measure> = 13.000000 ms
+      ->TraceDebug.cpp:216 (f1)  f2() - 1 = 1
+   (Full elapsed: 16.000000 ms) TraceDebug.cpp:215 (f1) [f1], <End measure> - <Start measure> = 25.000000 ms
+  ->TraceDebug.cpp:225 (main)  f1() = 1
+      Processing f3()  From TraceDebug.cpp:211 (f2)
+          TraceDebug.cpp:206 (f3)  a = 5
+       (Full elapsed: 32.000000 ms) TraceDebug.cpp:204 (f3) [f3], <End measure> - <Start measure> = 2.000000 ms
+      ->TraceDebug.cpp:211 (f2)  f3() = 5
+   (Full elapsed: 40.000000 ms) TraceDebug.cpp:210 (f2) [f2], <End measure> - <Start measure> = 13.000000 ms
+ (Full elapsed: 45.000000 ms) TraceDebug.cpp:224 (main) [main], <This is the middle> - <Start measure> = 39.000000 ms, <End measure> - <This is the middle> = 18.000000 ms, Full time: 57.000000 ms
+
+
+  **** Measures with cache enabled ****
+ 
+  Processing f1()  From TraceDebug.cpp:235 (main)
+      Processing f2() - 1  From TraceDebug.cpp:216 (f1)
+          Processing f3()  From TraceDebug.cpp:211 (f2)
+              TraceDebug.cpp:206 (f3)  a = 5
+          ->TraceDebug.cpp:211 (f2)  f3() = 5
+      ->TraceDebug.cpp:216 (f1)  f2() - 1 = 1
+  ->TraceDebug.cpp:235 (main)  f1() = 1
+      Processing f3()  From TraceDebug.cpp:211 (f2)
+          TraceDebug.cpp:206 (f3)  a = 5
+      ->TraceDebug.cpp:211 (f2)  f3() = 5
+           (Full elapsed: 73.000000 ms) TraceDebug.cpp:204 (f3) [f3], <End measure> - <Start measure> = 3.000000 ms
+       (Full elapsed: 75.000000 ms) TraceDebug.cpp:210 (f2) [f2], <End measure> - <Start measure> = 9.000000 ms
+   (Full elapsed: 77.000000 ms) TraceDebug.cpp:215 (f1) [f1], <End measure> - <Start measure> = 15.000000 ms
+       (Full elapsed: 84.000000 ms) TraceDebug.cpp:204 (f3) [f3], <End measure> - <Start measure> = 2.000000 ms
+   (Full elapsed: 86.000000 ms) TraceDebug.cpp:210 (f2) [f2], <End measure> - <Start measure> = 7.000000 ms
+ (Full elapsed: 86.000000 ms) TraceDebug.cpp:234 (main) [main], <This is the middle> - <Start measure> = 21.000000 ms, <End measure> - <This is the middle> = 7.000000 ms, Full time: 28.000000 ms
+ (Full elapsed: 86.000000 ms) TraceDebug.cpp:234 (main) [main], <This is the middle> - <Start measure> = 21.000000 ms, <End measure> - <This is the middle> = 7.000000 ms, Full time: 28.000000 ms
+ (Full elapsed: 130.000000 ms) TraceDebug.cpp:234 (main) [main], <This is the middle> - <Start measure> = 21.000000 ms, <End measure> - <This is the middle> = 7.000000 ms, <Start Printing cache> - <End measure> = 0.000000 ms, <Done Printing cache> - <Start Printing cache> = 44.000000 ms, Full time: 72.000000 ms
+```
