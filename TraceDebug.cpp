@@ -8,7 +8,8 @@
 #ifdef ENABLE_TRACE_DEBUG
 // ==============================================================================================================================
 int                                                                     DebugTrace::debugPrintDeepness = 0;
-uint64_t                                                                DebugTrace::tracePerformanceCacheDeepness = 500;
+uint64_t                                                                DebugTrace::traceCacheDeepness = 500;
+std::atomic<double>                                                     DebugTrace::reserveTime = 0;
 bool                                                                    DebugTrace::traceActive = true;
 std::vector<std::string>                                                DebugTrace::localCache;
 std::map<std::string, int>                                              DebugTrace::mapFileNameToLine;
@@ -74,18 +75,27 @@ DebugTrace::~DebugTrace() {
 void DebugTrace::DisplayPerformanceMeasure() {
   // Automatically an end of measure trace points when getting out of scope
   AddTrace(std::chrono::steady_clock::now(), "End measure");
+  CacheOrPrintTimings(GetPerformanceResults());
+}
 
+// ==============================================================================================================================
+void DebugTrace::CacheOrPrintTimings(std::string&& output) {
   // Is the cache enabled ?
-  if(tracePerformanceCacheDeepness > 1) {
-    localCache.push_back(GetPerformanceResults());
+  if(traceCacheDeepness > 1) {
+    localCache.push_back(output);
     // Print all cache information when maximum cache size happened
-    if(localCache.size() > tracePerformanceCacheDeepness - 1 || debugPrintDeepness <= 0) {
+    if(localCache.size() > traceCacheDeepness - 1 || debugPrintDeepness <= 0) {
       auto startPrintingCacheTime = std::chrono::steady_clock::now();
       localCache.push_back(GetPerformanceResults());
       for(const std::string & str: localCache) {
         PRINT_RESULT(str);
       }
       localCache.clear();
+      if(reserveTime > 0) {
+        AddTrace(startPrintingCacheTime, "*** WARNING:Cache was resized when displaying trace informations. This resize inducted " +
+                 std::to_string(reserveTime) + std::string(UNIT_TRACE_DEBUG)+ " overhead in this measure !!!***)");
+        reserveTime = 0;
+      }
       // Update all still existing trace points that their measures will be impacted because of the cache display
       AddTrace(startPrintingCacheTime, "Start Printing cache");
       auto endPrintingCacheTime = std::chrono::steady_clock::now();
@@ -102,8 +112,28 @@ void DebugTrace::DisplayPerformanceMeasure() {
     }
   } else {
     // Display results without caching information
-    PRINT_RESULT(GetPerformanceResults());
+    PRINT_RESULT(output);
   }
+}
+
+// ==============================================================================================================================
+void DebugTrace::CacheOrPrintOutputs(std::string&& output) {
+  // Is the cache enabled ?
+  if(traceCacheDeepness > 1) {
+    localCache.push_back(output);
+    if(localCache.size() > traceCacheDeepness - 1) {
+      auto startResizing = std::chrono::steady_clock::now();
+      traceCacheDeepness *= 2;
+      localCache.reserve(traceCacheDeepness);
+      DISPLAY_DEBUG_MESSAGE("INFO: Reserved more space for cache. Now set to " + std::to_string(traceCacheDeepness));
+      reserveTime = reserveTime + std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> (
+                                         std::chrono::steady_clock::now() - startResizing).count();
+    }
+  } else {
+    // Display results without caching information
+    PRINT_RESULT(output);
+  }
+
 }
 
 // ==============================================================================================================================
@@ -149,11 +179,7 @@ void DebugTrace::PrintString(const std::string & inStr, bool showHierarchy) {
   } else {
     str = inStr;
   }
-#ifdef USE_QT_DEBUG
-  qDebug() << QString::fromUtf8(str.c_str());
-#else
-  std::cout << str << std::endl;
-#endif
+  CacheOrPrintOutputs(std::move(str));
 }
 
 // ==============================================================================================================================
@@ -197,14 +223,14 @@ std::string DebugTrace::GetPerformanceResults() {
 // ==============================================================================================================================
 // ==============================================================================================================================
 
-//cl /EHsc TraceDebug.cpp
+// Compile with MSVC2013: cl /EHsc TraceDebug.cpp
 #define TRACE_DEBUG_HPP_DEBUG_LOCAL
 #ifdef TRACE_DEBUG_HPP_DEBUG_LOCAL
 int f3() {
   START_TRACE_PERFORMANCE(f3);
   int a = 5;
   DISPLAY_IMMEDIATE_DEBUG_VALUE(a);
-  return a;  
+  return a;
 }
 int f2() {
   START_TRACE_PERFORMANCE(f2);
@@ -230,7 +256,7 @@ void main()
   // Enable again: trace informtion will not be dispayed concurrently to the timing measures
   {
     std::cout << "\n\n  **** Measures with cache enabled ****\n" << std::endl;
-    SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(500);
+    SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(5);
     START_TRACE_PERFORMANCE(main);
     DISPLAY_DEBUG_VALUE(f1());
     ADD_TRACE_PERFORMANCE(main, "This is the middle");

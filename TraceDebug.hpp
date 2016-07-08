@@ -15,6 +15,7 @@
 #include <iostream>
 #include <chrono>
 #include <sstream>
+#include <atomic>
 
 #define ENABLE_TRACE_DEBUG
 #ifdef ENABLE_TRACE_DEBUG
@@ -100,9 +101,15 @@
     DebugTrace::SetTracePerformanceCacheDeepness(cache_deepness);
 
   class DebugTrace {
+      // How many objects DebugTrace in nested scopes were created
       static int debugPrintDeepness;
-      static uint64_t tracePerformanceCacheDeepness;
+      // How many elements to be cached
+      static uint64_t traceCacheDeepness;
+      // How much time required if reserve must be applied on localCache
+      static std::atomic<double> reserveTime;
+      // Traces are active / Inactive
       static bool traceActive;
+      // Local cache to be used instead of the output
       static std::vector<std::string> localCache;
       static std::map<std::string, int> mapFileNameToLine;
       static std::map<std::string, std::vector<std::pair<std::string,
@@ -126,16 +133,18 @@
       static std::string getSpaces();
       static void PrintString(const std::string & inStr, bool showHierarchy);
       static void SetTracePerformanceCacheDeepness(uint64_t cacheDeepness) {
-        tracePerformanceCacheDeepness = cacheDeepness;
+        traceCacheDeepness = cacheDeepness;
         // Set a little bigger as the time for displaying output will
         // automatically be added.
-        localCache.reserve(tracePerformanceCacheDeepness + 3);
+        localCache.reserve(traceCacheDeepness + 3);
       }
 
-      std::string GetPerformanceResults();
       void  AddTrace(std::chrono::system_clock::time_point timePoint, const std::string & variableName);
   private:
+      std::string GetPerformanceResults();
       void DisplayPerformanceMeasure();
+      void CacheOrPrintTimings(std::string &&output);
+      static void CacheOrPrintOutputs(std::string &&output);
   };
 #else
   #define DISPLAY_DEBUG_ACTIVE_TRACE
