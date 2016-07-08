@@ -16,6 +16,7 @@
 #include <chrono>
 #include <sstream>
 #include <atomic>
+#include <cstring>
 
 #define ENABLE_TRACE_DEBUG
 #ifdef ENABLE_TRACE_DEBUG
@@ -113,7 +114,7 @@
       static std::vector<std::string> localCache;
       static std::map<std::string, int> mapFileNameToLine;
       static std::map<std::string, std::vector<std::pair<std::string,
-                                               std::chrono::system_clock::time_point>>> mapFileNameFunctionNameToVectorTimingInfo;
+                                               std::chrono::steady_clock::time_point>>> mapFileNameFunctionNameToVectorTimingInfo;
       bool debugPrintMustBeDecremented = false;
       bool debugPerformanceMustBeDisplayed = false;
       std::string keyDebugPrintToErase;
@@ -139,7 +140,7 @@
         localCache.reserve(traceCacheDeepness + 3);
       }
 
-      void  AddTrace(std::chrono::system_clock::time_point timePoint, const std::string & variableName);
+      void  AddTrace(std::chrono::steady_clock::time_point timePoint, const std::string & variableName);
   private:
       std::string GetPerformanceResults();
       void DisplayPerformanceMeasure();

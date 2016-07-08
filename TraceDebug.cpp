@@ -9,13 +9,13 @@
 // ==============================================================================================================================
 int                                                                     DebugTrace::debugPrintDeepness = 0;
 uint64_t                                                                DebugTrace::traceCacheDeepness = 500;
-std::atomic<double>                                                     DebugTrace::reserveTime = 0;
+std::atomic<double>                                                     DebugTrace::reserveTime(0);
 bool                                                                    DebugTrace::traceActive = true;
 std::vector<std::string>                                                DebugTrace::localCache;
 std::map<std::string, int>                                              DebugTrace::mapFileNameToLine;
 std::map<std::string,
          std::vector<std::pair<std::string,
-                               std::chrono::system_clock::time_point>>> DebugTrace::mapFileNameFunctionNameToVectorTimingInfo;
+                               std::chrono::steady_clock::time_point>>> DebugTrace::mapFileNameFunctionNameToVectorTimingInfo;
 
 // ==============================================================================================================================
 std::string DebugTrace::GetUniqueKey(const std::string & string1,
@@ -137,14 +137,14 @@ void DebugTrace::CacheOrPrintOutputs(std::string&& output) {
 }
 
 // ==============================================================================================================================
-void DebugTrace::AddTrace(std::chrono::system_clock::time_point timePoint, const std::string & variableName) {
+void DebugTrace::AddTrace(std::chrono::steady_clock::time_point timePoint, const std::string & variableName) {
 
-  std::pair<std::string, std::chrono::system_clock::time_point> tmpPair = std::make_pair(variableName, timePoint);
+  std::pair<std::string, std::chrono::steady_clock::time_point> tmpPair = std::make_pair(variableName, timePoint);
 
   auto vectorTimingInfoIt = mapFileNameFunctionNameToVectorTimingInfo.find(keyDebugPerformanceToErase);
 
   if(vectorTimingInfoIt == mapFileNameFunctionNameToVectorTimingInfo.end()) {
-    std::vector<std::pair<std::string, std::chrono::system_clock::time_point>> tmpVector;
+    std::vector<std::pair<std::string, std::chrono::steady_clock::time_point>> tmpVector;
     tmpVector.push_back(tmpPair);
     mapFileNameFunctionNameToVectorTimingInfo[keyDebugPerformanceToErase] = std::move(tmpVector);
   } else {
@@ -223,7 +223,10 @@ std::string DebugTrace::GetPerformanceResults() {
 // ==============================================================================================================================
 // ==============================================================================================================================
 
-// Compile with MSVC2013: cl /EHsc TraceDebug.cpp
+// Compile with MSVC2013:
+//   cl /EHsc TraceDebug.cpp
+// Compile with gcc:
+//   g++ -std=c++11 -o TraceDebug TraceDebug.cpp
 #define TRACE_DEBUG_HPP_DEBUG_LOCAL
 #ifdef TRACE_DEBUG_HPP_DEBUG_LOCAL
 int f3() {
@@ -242,7 +245,7 @@ int f1() {
   DISPLAY_DEBUG_VALUE(f2() - 1);
   return 1;
 }
-void main()
+int main()
 {
   // Disable cache related to performance analysis for the sake of the example.
   {
