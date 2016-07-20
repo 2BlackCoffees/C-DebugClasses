@@ -131,8 +131,10 @@
   // Define deepness of cache: Set below 2, caching is deactivated: all results are displayed when available.
   // Displaying has a huge cost of performance, thus enabling the cache allows to have a more reliable measure.
   // Once the cache is full it is displayed and all measures not yet done will notify the inducted time overhead.
-  #define SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(cache_deepness) \
-    DebugTrace::SetTracePerformanceCacheDeepness(cache_deepness);
+#define SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(cache_deepness) \
+  DebugTrace::SetTracePerformanceCacheDeepness(cache_deepness);
+#define DISPLAY_START_TRACE_PERFORMANCE(displayStartTracePerformance) \
+  DebugTrace::DisplayStartTracePerformance(displayStartTracePerformance);
 
   class DebugTrace {
       // How many objects DebugTrace in nested scopes were created
@@ -147,6 +149,9 @@
       static std::atomic<double> reserveTime;
       // Traces are active / Inactive
       static bool traceActive;
+      // Display a message when starting a trace performance if true
+      // Will display only final result if false
+      static bool displayStartTracePerformance;
       // Local cache to be used instead of the output
       static std::vector<std::string> localCache;
       // Key is filename + functioname, Value is line number
@@ -193,6 +198,10 @@
         std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> elapsedTime =
             std::chrono::system_clock::now() - startingTime;
         return std::to_string(elapsedTime.count()) + UNIT_TRACE_DEBUG;
+      }
+      static void DisplayStartTracePerformance(bool inDisplayStartTracePerformance) {
+        GET_THREAD_SAFE_GUARD;
+        displayStartTracePerformance = inDisplayStartTracePerformance;
       }
 
       void  AddTrace(std::chrono::steady_clock::time_point timePoint, const std::string & variableName);

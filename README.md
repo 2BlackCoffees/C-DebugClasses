@@ -48,46 +48,59 @@ void main()
 Provides following output:
 
 ```
-0.061682 ms: Processing f1()  From TraceDebug.cpp:272 (main)
-     0.101155 ms: Processing f2() - 1  From TraceDebug.cpp:263 (f1)
-         0.112363 ms: Processing f3()  From TraceDebug.cpp:258 (f2)
-             0.120368 ms TraceDebug.cpp:253 (f3)  a = 5
-          (Full elapsed: 0.000422 ms) TraceDebug.cpp:251 (f3) [f3], <End measure> - <Start measure> = 0.013742 ms
-         0.142666 ms ->TraceDebug.cpp:258 (f2)  f3() = 5
-      (Full elapsed: 0.016892 ms) TraceDebug.cpp:257 (f2) [f2], <End measure> - <Start measure> = 0.040930 ms
-     0.154986 ms ->TraceDebug.cpp:263 (f1)  f2() - 1 = 1
-  (Full elapsed: 0.028964 ms) TraceDebug.cpp:262 (f1) [f1], <End measure> - <Start measure> = 0.064852 ms
- 0.166372 ms ->TraceDebug.cpp:272 (main)  f1() = 1
-     0.176165 ms: Processing f3()  From TraceDebug.cpp:258 (f2)
-         0.183521 ms TraceDebug.cpp:253 (f3)  a = 5
-      (Full elapsed: 0.056520 ms) TraceDebug.cpp:251 (f3) [f3], <End measure> - <Start measure> = 0.007694 ms
-     0.193883 ms ->TraceDebug.cpp:258 (f2)  f3() = 5
-  (Full elapsed: 0.067016 ms) TraceDebug.cpp:257 (f2) [f2], <End measure> - <Start measure> = 0.026332 ms
-(Full elapsed: 0.073725 ms) TraceDebug.cpp:271 (main) [main], <This is the middle> - <Start measure> = 0.117390 ms, <End measure> - <This is the middle> = 0.035336 ms, Full time: 0.152726 ms
+0.132222 ms:TraceDebug.cpp:279 (main) [main]  Start measure
+  0.213242 ms: Processing f1()  From TraceDebug.cpp:280 (main)
+    0.255236 ms:TraceDebug.cpp:270 (f1) [f1]  Start measure
+      0.278640 ms: Processing f2() - 1  From TraceDebug.cpp:271 (f1)
+        0.302037 ms:TraceDebug.cpp:265 (f2) [f2]  Start measure
+          0.323583 ms: Processing f3()  From TraceDebug.cpp:266 (f2)
+            0.351862 ms:TraceDebug.cpp:259 (f3) [f3]  Start measure
+              0.377792 ms TraceDebug.cpp:261 (f3)  a = 5
+           (Full elapsed: 0.000835 ms) TraceDebug.cpp:259 (f3) [f3], <End measure> - <Start measure> = 0.062327 ms
+          0.452046 ms ->TraceDebug.cpp:266 (f2)  f3() = 5
+       (Full elapsed: 0.059631 ms) TraceDebug.cpp:265 (f2) [f2], <End measure> - <Start measure> = 0.175375 ms
+      0.496799 ms ->TraceDebug.cpp:271 (f1)  f2() - 1 = 1
+   (Full elapsed: 0.103325 ms) TraceDebug.cpp:270 (f1) [f1], <End measure> - <Start measure> = 0.266869 ms
+  0.541907 ms ->TraceDebug.cpp:280 (main)  f1() = 1
+    0.569143 ms:TraceDebug.cpp:265 (f2) [f2]  Start measure
+      0.592811 ms: Processing f3()  From TraceDebug.cpp:266 (f2)
+        0.615757 ms:TraceDebug.cpp:259 (f3) [f3]  Start measure
+          0.636929 ms TraceDebug.cpp:261 (f3)  a = 5
+       (Full elapsed: 0.243254 ms) TraceDebug.cpp:259 (f3) [f3], <End measure> - <Start measure> = 0.043874 ms
+      0.682120 ms ->TraceDebug.cpp:266 (f2)  f3() = 5
+   (Full elapsed: 0.286123 ms) TraceDebug.cpp:265 (f2) [f2], <End measure> - <Start measure> = 0.134042 ms
+ (Full elapsed: 0.311000 ms) TraceDebug.cpp:279 (main) [main], <This is the middle> - <Start measure> = 0.433048 ms, <End measure> - <This is the middle> = 0.165432 ms, Full time: 0.598480 ms
 
 
- **** Measures with cache enabled ****
+  **** Measures with cache enabled ****
 
- 0.221901 ms: Processing f1()  From TraceDebug.cpp:282 (main)
-     0.228825 ms: Processing f2() - 1  From TraceDebug.cpp:263 (f1)
-         0.235176 ms: Processing f3()  From TraceDebug.cpp:258 (f2)
-             0.240904 ms TraceDebug.cpp:253 (f3)  a = 5
-          (Full elapsed: 0.112704 ms) TraceDebug.cpp:251 (f3) [f3], <End measure> - <Start measure> = 0.006171 ms
-          (Full elapsed: 0.116124 ms) TraceDebug.cpp:251 (f3) [f3], <End measure> - <Start measure> = 0.006171 ms
-          (Full elapsed: 0.126592 ms) TraceDebug.cpp:251 (f3) [f3], <End measure> - <Start measure> = 0.006171 ms, <Start Printing cache> - <End measure> = 0.003960 ms, <Done Printing cache> - <Start Printing cache> = 0.010057 ms, Full time: 0.020188 ms
-         0.274333 ms ->TraceDebug.cpp:258 (f2)  f3() = 5
-      (Full elapsed: 0.146267 ms) TraceDebug.cpp:257 (f2) [f2], <End measure> - <(***!!! Printing inducted 0.010057 ms overhead in this measure !!!***)Start measure> = 0.045981 ms
-     0.282282 ms ->TraceDebug.cpp:263 (f1)  f2() - 1 = 1
-  (Full elapsed: 0.153964 ms) TraceDebug.cpp:262 (f1) [f1], <End measure> - <(***!!! Printing inducted 0.010057 ms overhead in this measure !!!***)Start measure> = 0.059860 ms
- 0.289692 ms ->TraceDebug.cpp:282 (main)  f1() = 1
-   0.295003 ms TraceDebug.cpp:146 (CacheOrPrintOutputs)  INFO: Reserved more space for cache. Now set to 10
-     0.314314 ms: Processing f3()  From TraceDebug.cpp:258 (f2)
-         0.321314 ms TraceDebug.cpp:253 (f3)  a = 5
-      (Full elapsed: 0.193197 ms) TraceDebug.cpp:251 (f3) [f3], <End measure> - <Start measure> = 0.006661 ms
-     0.329303 ms ->TraceDebug.cpp:258 (f2)  f3() = 5
-       0.334049 ms TraceDebug.cpp:146 (CacheOrPrintOutputs)  INFO: Reserved more space for cache. Now set to 20
-  (Full elapsed: 0.207240 ms) TraceDebug.cpp:257 (f2) [f2], <End measure> - <Start measure> = 0.037276 ms
-(Full elapsed: 0.212542 ms) TraceDebug.cpp:281 (main) [main], <This is the middle> - <(***!!! Printing inducted 0.010057 ms overhead in this measure !!!***)Start measure> = 0.080931 ms, <End measure> - <This is the middle> = 0.044893 ms, Full time: 0.125824 ms
-(Full elapsed: 0.217651 ms) TraceDebug.cpp:281 (main) [main], <This is the middle> - <(***!!! Printing inducted 0.010057 ms overhead in this measure !!!***)Start measure> = 0.080931 ms, <End measure> - <This is the middle> = 0.044893 ms, Full time: 0.125824 ms
-(Full elapsed: 0.240087 ms) TraceDebug.cpp:281 (main) [main], <This is the middle> - <(***!!! Printing inducted 0.010057 ms overhead in this measure !!!***)Start measure> = 0.080931 ms, <End measure> - <This is the middle> = 0.044893 ms, <*** WARNING:Cache was resized when displaying trace informations. This resize inducted 0.013461 ms overhead in this measure !!!***)> - <End measure> = 0.005595 ms, <Start Printing cache> - <*** WARNING:Cache was resized when displaying trace informations. This resize inducted 0.013461 ms overhead in this measure !!!***)> = 0.000000 ms, <Done Printing cache> - <Start Printing cache> = 0.022181 ms, Full time: 0.153600 ms
+0.786120 ms:TraceDebug.cpp:289 (main) [main]  Start measure
+  0.797677 ms: Processing f1()  From TraceDebug.cpp:290 (main)
+    0.809260 ms:TraceDebug.cpp:270 (f1) [f1]  Start measure
+      0.818241 ms: Processing f2() - 1  From TraceDebug.cpp:271 (f1)
+        0.827950 ms:TraceDebug.cpp:265 (f2) [f2]  Start measure
+          0.838968 ms TraceDebug.cpp:151 (CacheOrPrintOutputs)  INFO: Reserved more space for cache. Now set to 10
+          0.853475 ms: Processing f3()  From TraceDebug.cpp:266 (f2)
+            0.864193 ms:TraceDebug.cpp:259 (f3) [f3]  Start measure
+              0.871838 ms TraceDebug.cpp:261 (f3)  a = 5
+           (Full elapsed: 0.466746 ms) TraceDebug.cpp:259 (f3) [f3], <End measure> - <Start measure> = 0.018476 ms
+           (Full elapsed: 0.475647 ms) TraceDebug.cpp:259 (f3) [f3], <End measure> - <Start measure> = 0.018476 ms
+           (Full elapsed: 0.587147 ms) TraceDebug.cpp:259 (f3) [f3], <End measure> - <Start measure> = 0.018476 ms, <*** WARNING:Cache was resized when displaying trace informations. This resize inducted 0.015796 ms overhead in this measure !!!***)> - <End measure> = 0.010625 ms, <Start Printing cache> - <*** WARNING:Cache was resized when displaying trace informations. This resize inducted 0.015796 ms overhead in this measure !!!***)> = 0.000000 ms, <Done Printing cache> - <Start Printing cache> = 0.109265 ms, Full time: 0.138366 ms
+          1.070623 ms ->TraceDebug.cpp:266 (f2)  f3() = 5
+       (Full elapsed: 0.666961 ms) TraceDebug.cpp:265 (f2) [f2], <End measure> - <(***!!! Printing inducted 0.109265 ms overhead in this measure !!!***)Start measure> = 0.254871 ms
+      1.091738 ms ->TraceDebug.cpp:271 (f1)  f2() - 1 = 1
+   (Full elapsed: 0.685788 ms) TraceDebug.cpp:270 (f1) [f1], <End measure> - <(***!!! Printing inducted 0.109265 ms overhead in this measure !!!***)Start measure> = 0.292859 ms
+  1.109616 ms ->TraceDebug.cpp:290 (main)  f1() = 1
+    1.122439 ms:TraceDebug.cpp:265 (f2) [f2]  Start measure
+      1.131981 ms: Processing f3()  From TraceDebug.cpp:266 (f2)
+        1.141266 ms:TraceDebug.cpp:259 (f3) [f3]  Start measure
+          1.148679 ms TraceDebug.cpp:261 (f3)  a = 5
+       (Full elapsed: 0.742472 ms) TraceDebug.cpp:259 (f3) [f3], <End measure> - <Start measure> = 0.017387 ms
+       (Full elapsed: 0.750460 ms) TraceDebug.cpp:259 (f3) [f3], <End measure> - <Start measure> = 0.017387 ms
+       (Full elapsed: 0.856408 ms) TraceDebug.cpp:259 (f3) [f3], <End measure> - <Start measure> = 0.017387 ms, <Start Printing cache> - <End measure> = 0.009101 ms, <Done Printing cache> - <Start Printing cache> = 0.105123 ms, Full time: 0.131611 ms
+      1.321475 ms ->TraceDebug.cpp:266 (f2)  f3() = 5
+   (Full elapsed: 0.916761 ms) TraceDebug.cpp:265 (f2) [f2], <End measure> - <(***!!! Printing inducted 0.105123 ms overhead in this measure !!!***)Start measure> = 0.210145 ms
+ (Full elapsed: 0.930947 ms) TraceDebug.cpp:289 (main) [main], <(***!!! Printing inducted 0.105123 ms overhead in this measure !!!***)This is the middle> - <(***!!! Printing inducted 0.105123 ms overhead in this measure !!!***)(***!!! Printing inducted 0.109265 ms overhead in this measure !!!***)Start measure> = 0.331769 ms, <End measure> - <(***!!! Printing inducted 0.105123 ms overhead in this measure !!!***)This is the middle> = 0.229509 ms, Full time: 0.561278 ms
+ (Full elapsed: 0.944264 ms) TraceDebug.cpp:289 (main) [main], <(***!!! Printing inducted 0.105123 ms overhead in this measure !!!***)This is the middle> - <(***!!! Printing inducted 0.105123 ms overhead in this measure !!!***)(***!!! Printing inducted 0.109265 ms overhead in this measure !!!***)Start measure> = 0.331769 ms, <End measure> - <(***!!! Printing inducted 0.105123 ms overhead in this measure !!!***)This is the middle> = 0.229509 ms, Full time: 0.561278 ms
+ (Full elapsed: 1.007400 ms) TraceDebug.cpp:289 (main) [main], <(***!!! Printing inducted 0.105123 ms overhead in this measure !!!***)This is the middle> - <(***!!! Printing inducted 0.105123 ms overhead in this measure !!!***)(***!!! Printing inducted 0.109265 ms overhead in this measure !!!***)Start measure> = 0.331769 ms, <End measure> - <(***!!! Printing inducted 0.105123 ms overhead in this measure !!!***)This is the middle> = 0.229509 ms, <Start Printing cache> - <End measure> = 0.014557 ms, <Done Printing cache> - <Start Printing cache> = 0.060623 ms, Full time: 0.636458 ms
  ```
