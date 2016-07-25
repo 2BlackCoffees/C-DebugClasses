@@ -30,21 +30,20 @@
   #define TRACE_DEBUG_HPP_DEBUG_LOCAL
 
   // Uncomment to disable threadsafe
-  #define ENABLE_THREAD_SAFE
+  //#define ENABLE_THREAD_SAFE
   #ifdef ENABLE_THREAD_SAFE
     #define GET_THREAD_SAFE_GUARD std::lock_guard<std::recursive_mutex> guard(the_mutex);
   #else
     #define GET_THREAD_SAFE_GUARD
   #endif
 
-
   // Select here micro or milliseconds traces
   //#define UNIT_TRACE_DEBUG_NANO
   #ifdef UNIT_TRACE_DEBUG_NANO
-    #define UNIT_TRACE_DEBUG " ns"
+    #define UNIT_TRACE_DEBUG "ns"
     #define UNIT_TRACE_TEMPLATE_TYPE std::nano
   #else
-    #define UNIT_TRACE_DEBUG " ms"
+    #define UNIT_TRACE_DEBUG "ms"
     #define UNIT_TRACE_TEMPLATE_TYPE std::milli
   #endif
 
@@ -60,7 +59,17 @@
       #define PRINT_RESULT(string_to_print) std::cout << string_to_print << std::endl;
     #endif
   #else
-    #define PRINT_RESULT(string_to_print) DebugTrace::WriteToFile(string_to_print, "TraceDebug.log");
+    #include <iomanip>
+    #include <sys/stat.h>
+    #ifdef _WIN32
+      #include <process.h>
+      #define GETPID _getpid()
+    #else
+      #include<sys/types.h>
+      #include <unistd.h>
+      #define GETPID getpid()
+    #endif
+    #define PRINT_RESULT(string_to_print) DebugTrace::WriteToFile(string_to_print, "TraceDebug");
   #endif
 
   // =============================================================================================
@@ -88,9 +97,9 @@
   if(DebugTrace::IsTraceActive()) { \
     std::stringstream TOKENPASTE_EXPAND(__UnusedStream1, __LINE__);\
     std::stringstream TOKENPASTE_EXPAND(__UnusedStream2, __LINE__);\
-    TOKENPASTE_EXPAND(__UnusedStream1, __LINE__) << DebugTrace::GetDiffTimeSinceStart() << ": Processing " << #value << "  From " << __FILENAME__ << ":" << __LINE__ << " ("<< __func__ << ")"; \
+    TOKENPASTE_EXPAND(__UnusedStream1, __LINE__) << DebugTrace::GetDiffTimeSinceStartAndThreadId() << ":Processing " << #value << "  From " << __FILENAME__ << ":" << __LINE__ << " ("<< __func__ << ")"; \
     DebugTrace::PrintString(TOKENPASTE_EXPAND(__UnusedStream1, __LINE__).str(), true);\
-    TOKENPASTE_EXPAND(__UnusedStream2, __LINE__) << DebugTrace::GetDiffTimeSinceStart() << " ->" << __FILENAME__ << ":" << __LINE__ << " ("<< __func__ << ")  " << #value << " = " << (value); \
+    TOKENPASTE_EXPAND(__UnusedStream2, __LINE__) << DebugTrace::GetDiffTimeSinceStartAndThreadId() << ":->" << __FILENAME__ << ":" << __LINE__ << " ("<< __func__ << ")  " << #value << " = " << (value); \
     DebugTrace::PrintString(TOKENPASTE_EXPAND(__UnusedStream2, __LINE__).str(), true);\
   }
   // Display a value specifying the expression, its value and many blank spaces defining the deepness of the hierarchy,
@@ -100,14 +109,14 @@
   DebugTrace TOKENPASTE_EXPAND(__Unused, __LINE__)(__func__, __FILENAME__, __LINE__); \
   if(DebugTrace::IsTraceActive()) { \
     std::stringstream TOKENPASTE_EXPAND(__UnusedStream, __LINE__);\
-    TOKENPASTE_EXPAND(__UnusedStream, __LINE__) << DebugTrace::GetDiffTimeSinceStart() << " " << __FILENAME__ << ":" << __LINE__ << " ("<< __func__ << ")  " << #value << " = " << (value); \
+    TOKENPASTE_EXPAND(__UnusedStream, __LINE__) << DebugTrace::GetDiffTimeSinceStartAndThreadId() << ":" << __FILENAME__ << ":" << __LINE__ << " ("<< __func__ << ")  " << #value << " = " << (value); \
     DebugTrace::PrintString(TOKENPASTE_EXPAND(__UnusedStream, __LINE__).str(), true);\
   }
   // Display a message and preceeded by blank spaces defining the deepness of the hierarchy
   #define DISPLAY_DEBUG_MESSAGE(message) { \
       DebugTrace TOKENPASTE_EXPAND(__Unused, __LINE__)(__func__, __FILENAME__, __LINE__); \
       std::stringstream TOKENPASTE_EXPAND(__UnusedStream, __LINE__);\
-      TOKENPASTE_EXPAND(__UnusedStream, __LINE__) << DebugTrace::GetDiffTimeSinceStart() << " " << __FILENAME__ << ":" << __LINE__ << " ("<< __func__ << ")  " << message; \
+      TOKENPASTE_EXPAND(__UnusedStream, __LINE__) << DebugTrace::GetDiffTimeSinceStartAndThreadId() << ":" << __FILENAME__ << ":" << __LINE__ << " ("<< __func__ << ")  " << message; \
       if(DebugTrace::IsTraceActive()) { DebugTrace::PrintString(TOKENPASTE_EXPAND(__UnusedStream, __LINE__).str(), true); }\
   }
   // Display a value specifying the expression, its value and preceed them with blank spaces defining the deepness of the hierarchy
@@ -117,7 +126,7 @@
       if(DebugTrace::IsTraceActive()) { \
         DISPLAY_DEBUG_DEACTIVE_TRACE; \
         std::stringstream TOKENPASTE_EXPAND(__UnusedStream, __LINE__);\
-        TOKENPASTE_EXPAND(__UnusedStream, __LINE__) << DebugTrace::GetDiffTimeSinceStart() << " " << __BASE_FILE__ << ":" << __LINE__ << " ("<< __func__ << ")  " << #value << " = " << (value) << std::endl; \
+        TOKENPASTE_EXPAND(__UnusedStream, __LINE__) << DebugTrace::GetDiffTimeSinceStartAndThreadId() << ":" << __BASE_FILE__ << ":" << __LINE__ << " ("<< __func__ << ")  " << #value << " = " << (value) << std::endl; \
         DebugTrace::PrintString(TOKENPASTE_EXPAND(__UnusedStream, __LINE__).str(), true);\
         DISPLAY_DEBUG_ACTIVE_TRACE; \
       }
@@ -131,10 +140,13 @@
   // Define deepness of cache: Set below 2, caching is deactivated: all results are displayed when available.
   // Displaying has a huge cost of performance, thus enabling the cache allows to have a more reliable measure.
   // Once the cache is full it is displayed and all measures not yet done will notify the inducted time overhead.
-#define SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(cache_deepness) \
-  DebugTrace::SetTracePerformanceCacheDeepness(cache_deepness);
-#define DISPLAY_START_TRACE_PERFORMANCE(displayStartTracePerformance) \
-  DebugTrace::DisplayStartTracePerformance(displayStartTracePerformance);
+  #define SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(cache_deepness) \
+    DebugTrace::SetTracePerformanceCacheDeepness(cache_deepness);
+  // Specifies whether the line Start measure should be displayed when creating a new START_TRACE_PERFORMANCE
+  // By default it is displayed, it can be removed specifying DISPLAY_START_TRACE_PERFORMANCE(false) and thus
+  // only the diff time in a scope will be displayed.
+  #define DISPLAY_START_TRACE_PERFORMANCE(displayStartTracePerformance) \
+    DebugTrace::DisplayStartTracePerformance(displayStartTracePerformance);
 
   class DebugTrace {
       // How many objects DebugTrace in nested scopes were created
@@ -160,7 +172,6 @@
       // Value is a vector of pair containing a variable name as first and timing as second
       static std::map<std::string, std::vector<std::pair<std::string,
                                                std::chrono::steady_clock::time_point>>> mapFileNameFunctionNameToVectorTimingInfo;      
-      static std::chrono::time_point<std::chrono::system_clock> startingTime;
 #ifdef WRITE_OUTPUT_TO_FILE
       static std::ofstream outputFile;
 #endif
@@ -194,10 +205,16 @@
         // automatically be added.
         localCache.reserve(traceCacheDeepness + 3);
       }
-      static std::string GetDiffTimeSinceStart() {
+      static std::string GetDiffTimeSinceStartAndThreadId() {
         std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> elapsedTime =
-            std::chrono::system_clock::now() - startingTime;
-        return std::to_string(elapsedTime.count()) + UNIT_TRACE_DEBUG;
+            std::chrono::system_clock::now().time_since_epoch();
+        std::string returnValue = std::to_string(elapsedTime.count()) + UNIT_TRACE_DEBUG;
+#ifdef ENABLE_THREAD_SAFE
+        std::ostringstream buffer;
+        buffer << std::this_thread::get_id();
+        returnValue += ":" + buffer.str();
+#endif
+        return returnValue;
       }
       static void DisplayStartTracePerformance(bool inDisplayStartTracePerformance) {
         GET_THREAD_SAFE_GUARD;
@@ -212,7 +229,13 @@
       static void WriteToFile(const std::string& stringToWrite, const std::string& fileName) {
         GET_THREAD_SAFE_GUARD;
         if(!outputFile.is_open()) {
-          outputFile.open(fileName);
+          // Search for a non existing filename          
+          std::string tmpFileName = fileName + "-" + std::to_string(GETPID);
+          struct stat buffer;
+          for(int index = 0; stat(tmpFileName.c_str(), &buffer) == 0; ++index) {
+            tmpFileName = fileName + std::to_string(index);
+          }
+          outputFile.open(tmpFileName + ".log");
         }
         outputFile << stringToWrite << "\n";
       }
@@ -264,5 +287,6 @@
   #define START_TRACE_PERFORMANCE(unique_key)
   #define ADD_TRACE_PERFORMANCE(unique_key, userInfo)
   #define SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(cache_deepness)
+  #define DISPLAY_START_TRACE_PERFORMANCE(displayStartTracePerformance)
 #endif
 #endif

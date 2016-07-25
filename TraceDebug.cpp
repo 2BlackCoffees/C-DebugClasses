@@ -16,8 +16,6 @@ unsigned int                                                            DebugTra
 #ifdef WRITE_OUTPUT_TO_FILE
 std::ofstream                                                           DebugTrace::outputFile;
 #endif
-std::chrono::time_point<std::chrono::system_clock>                      DebugTrace::startingTime =
-                                                                                               std::chrono::system_clock::now();
 unsigned int                                                            DebugTrace::traceCacheDeepness = 0;
 std::atomic<double>                                                     DebugTrace::reserveTime(0);
 bool                                                                    DebugTrace::traceActive = true;
@@ -47,7 +45,7 @@ DebugTrace::DebugTrace(const std::string & functionName, const std::string & fil
   const std::string startMeasure = "Start measure";
   AddTrace(std::chrono::steady_clock::now(), startMeasure);
   if(displayStartTracePerformance) {
-    DebugTrace::PrintString(DebugTrace::GetDiffTimeSinceStart() + ":" + lineHeader + "  " + startMeasure, true);
+    DebugTrace::PrintString(DebugTrace::GetDiffTimeSinceStartAndThreadId() + ":" + lineHeader + "  " + startMeasure, true);
   }
 }
 
@@ -73,6 +71,11 @@ DebugTrace::DebugTrace(const std::string & functionName, const std::string & fil
 // ==============================================================================================================================
 DebugTrace::~DebugTrace() {
   GET_THREAD_SAFE_GUARD;
+  if(debugPerformanceMustBeDisplayed) {
+    DisplayPerformanceMeasure();
+    mapFileNameFunctionNameToVectorTimingInfo.erase(keyDebugPerformanceToErase);
+  }
+
   auto getAllDebugPrintDeepness = GetAllDebugPrintDeepness();
   if((debugPrintMustBeDecremented || debugPerformanceMustBeDisplayed) && GetDebugPrintDeepness() > 0) {
     DecreaseDebugPrintDeepness();
@@ -80,12 +83,9 @@ DebugTrace::~DebugTrace() {
       mapFileNameToLine.erase(keyDebugPrintToErase);
     }
   }
+
   if(getAllDebugPrintDeepness == 0) {
     mapFileNameToLine.clear();
-  }
-  if(debugPerformanceMustBeDisplayed) {
-    DisplayPerformanceMeasure();
-    mapFileNameFunctionNameToVectorTimingInfo.erase(keyDebugPerformanceToErase);
   }
 #ifdef WRITE_OUTPUT_TO_FILE
   if(getAllDebugPrintDeepness == 0) {
@@ -211,13 +211,9 @@ void DebugTrace::PrintString(const std::string & inStr, bool showHierarchy) {
 
 // ==============================================================================================================================
 std::string DebugTrace::GetPerformanceResults() {
-  static auto firstAccess = std::chrono::steady_clock::now();
-  auto now = std::chrono::steady_clock::now();
   auto performanceInfos = mapFileNameFunctionNameToVectorTimingInfo[keyDebugPerformanceToErase];
 
-  std::string tmp = DebugTrace::getSpaces() + " (Full elapsed: " +
-      std::to_string(std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> (now - firstAccess).count()) +
-      std::string(UNIT_TRACE_DEBUG) + ") " + lineHeader;
+  std::string tmp = DebugTrace::getSpaces() + DebugTrace::GetDiffTimeSinceStartAndThreadId() + ":" + lineHeader;
   auto size = performanceInfos.size() - 1;
   if(size > 0) {
     for(decltype(size) index = 0; index < size; ++index)
