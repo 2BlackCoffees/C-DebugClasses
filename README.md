@@ -10,7 +10,7 @@ int f3() {
   START_TRACE_PERFORMANCE(f3);
   int a = 5;
   DISPLAY_IMMEDIATE_DEBUG_VALUE(a);
-  return a;  
+  return a;
 }
 int f2() {
   START_TRACE_PERFORMANCE(f2);
@@ -22,27 +22,26 @@ int f1() {
   DISPLAY_DEBUG_VALUE(f2() - 1);
   return 1;
 }
-void main()
-{
-  // Disable cache related to performance analysis for the sake of the example.
-  {
-    SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(0);
-    START_TRACE_PERFORMANCE(main);
-    DISPLAY_DEBUG_VALUE(f1());
-    ADD_TRACE_PERFORMANCE(main, "This is the middle");
-    f2();
-  }
-  
-  // Enable again: trace informtion will not be dispayed concurrently to the timing measures
-  {
-    std::cout << "\n\n  **** Measures with cache enabled ****\n" << std::endl;
-    SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(5);
-    START_TRACE_PERFORMANCE(main);
-    DISPLAY_DEBUG_VALUE(f1());
-    ADD_TRACE_PERFORMANCE(main, "This is the middle");
-    f2();
-  }
+
+void test() {
+  std::thread thread1(f1);
+  START_TRACE_PERFORMANCE(test);
+  DISPLAY_DEBUG_VALUE(f1());
+  ADD_TRACE_PERFORMANCE(test, "This is the middle");
+  f2();
+  thread1.join();
 }
+
+int main()
+{
+  std::cout << "\n\n ****  Without cache enabled **** \n\n";
+  SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(0);
+  test();
+  std::cout << "\n\n ****  With cache enabled **** \n\n";
+  SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(50);
+  test();
+}
+
 ```
 
 Provides following output:
