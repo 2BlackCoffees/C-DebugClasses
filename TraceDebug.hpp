@@ -30,7 +30,7 @@
   #define TRACE_DEBUG_HPP_DEBUG_LOCAL
 
   // Uncomment to disable threadsafe
-  //#define ENABLE_THREAD_SAFE
+  #define ENABLE_THREAD_SAFE
   #ifdef ENABLE_THREAD_SAFE
     #define GET_THREAD_SAFE_GUARD std::lock_guard<std::recursive_mutex> guard(the_mutex);
   #else
@@ -142,6 +142,7 @@
   // Once the cache is full it is displayed and all measures not yet done will notify the inducted time overhead.
   #define SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(cache_deepness) \
     DebugTrace::SetTracePerformanceCacheDeepness(cache_deepness);
+  #define SET_MAX_TRACE_PERFORMANCE_CACHE_DEEPNESS 50000
   // Specifies whether the line Start measure should be displayed when creating a new START_TRACE_PERFORMANCE
   // By default it is displayed, it can be removed specifying DISPLAY_START_TRACE_PERFORMANCE(false) and thus
   // only the diff time in a scope will be displayed.
@@ -198,12 +199,17 @@
       static void ActiveTrace(bool activate);
       static bool IsTraceActive();
       static void PrintString(const std::string & inStr, bool showHierarchy);
-      static void SetTracePerformanceCacheDeepness(unsigned int cacheDeepness) {
+      static bool SetTracePerformanceCacheDeepness(unsigned int cacheDeepness) {
         GET_THREAD_SAFE_GUARD;
-        traceCacheDeepness = cacheDeepness;
-        // Set a little bigger as the time for displaying output will
-        // automatically be added.
-        localCache.reserve(traceCacheDeepness + 3);
+        if(cacheDeepness >= SET_MAX_TRACE_PERFORMANCE_CACHE_DEEPNESS) cacheDeepness = SET_MAX_TRACE_PERFORMANCE_CACHE_DEEPNESS - 3;
+        if(cacheDeepness != traceCacheDeepness) {
+          traceCacheDeepness = cacheDeepness;
+          // Set a little bigger as the time for displaying output will
+          // automatically be added.
+          localCache.reserve(traceCacheDeepness + 3);
+          return true;
+        }
+        return false;
       }
       static std::string GetDiffTimeSinceStartAndThreadId() {
         std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> elapsedTime =

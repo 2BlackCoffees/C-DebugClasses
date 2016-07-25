@@ -48,55 +48,79 @@ void main()
 Provides following output:
 
 ```
-1469435661722.346680ms:TraceDebug.cpp:275 (main) [main]  Start measure
-  1469435661722.382812ms:Processing f1()  From TraceDebug.cpp:276 (main)
-    1469435661722.399658ms:TraceDebug.cpp:266 (f1) [f1]  Start measure
-      1469435661722.409912ms:Processing f2() - 1  From TraceDebug.cpp:267 (f1)
-        1469435661722.419922ms:TraceDebug.cpp:261 (f2) [f2]  Start measure
-          1469435661722.428223ms:Processing f3()  From TraceDebug.cpp:262 (f2)
-            1469435661722.437256ms:TraceDebug.cpp:255 (f3) [f3]  Start measure
-              1469435661722.449219ms:TraceDebug.cpp:257 (f3)  a = 5
-            1469435661722.462646ms:TraceDebug.cpp:255 (f3) [f3], <End measure> - <Start measure> = 0.025036ms
-          1469435661722.479736ms:->TraceDebug.cpp:262 (f2)  f3() = 5
-        1469435661722.489258ms:TraceDebug.cpp:261 (f2) [f2], <End measure> - <Start measure> = 0.070508ms
-      1469435661722.501709ms:->TraceDebug.cpp:267 (f1)  f2() - 1 = 1
-    1469435661722.510986ms:TraceDebug.cpp:266 (f1) [f1], <End measure> - <Start measure> = 0.113042ms
-  1469435661722.520264ms:->TraceDebug.cpp:276 (main)  f1() = 1
-    1469435661722.531006ms:TraceDebug.cpp:261 (f2) [f2]  Start measure
-      1469435661722.540039ms:Processing f3()  From TraceDebug.cpp:262 (f2)
-        1469435661722.549561ms:TraceDebug.cpp:255 (f3) [f3]  Start measure
-          1469435661722.557129ms:TraceDebug.cpp:257 (f3)  a = 5
-        1469435661722.565918ms:TraceDebug.cpp:255 (f3) [f3], <End measure> - <Start measure> = 0.016571ms
-      1469435661722.573730ms:->TraceDebug.cpp:262 (f2)  f3() = 5
-    1469435661722.581787ms:TraceDebug.cpp:261 (f2) [f2], <End measure> - <Start measure> = 0.051237ms
-1469435661722.592041ms:TraceDebug.cpp:275 (main) [main], <This is the middle> - <Start measure> = 0.184564ms, <End measure> - <This is the middle> = 0.064162ms, Full time: 0.248726ms
+
+ ****  Without cache enabled **** 
+
+1469454756441.994385ms:139661736146816:TraceDebug.cpp:280 (test) [test]  Start measure
+1469454756442.174072ms:139661719353088:TraceDebug.cpp:273 (f1) [f1]  Start measure
+  1469454756442.119385ms:139661736146816:Processing f1()  From TraceDebug.cpp:281 (test)
+    1469454756442.380371ms:139661736146816:TraceDebug.cpp:273 (f1) [f1]  Start measure
+  1469454756442.276367ms:139661719353088:Processing f2() - 1  From TraceDebug.cpp:274 (f1)
+    1469454756442.548584ms:139661719353088:TraceDebug.cpp:268 (f2) [f2]  Start measure
+      1469454756442.451172ms:139661736146816:Processing f2() - 1  From TraceDebug.cpp:274 (f1)
+        1469454756442.684570ms:139661736146816:TraceDebug.cpp:268 (f2) [f2]  Start measure
+          1469454756442.746094ms:139661736146816:Processing f3()  From TraceDebug.cpp:269 (f2)
+            1469454756442.807373ms:139661736146816:TraceDebug.cpp:262 (f3) [f3]  Start measure
+              1469454756442.854736ms:139661736146816:TraceDebug.cpp:264 (f3)  a = 5
+            1469454756442.944092ms:139661736146816:TraceDebug.cpp:262 (f3) [f3], <End measure> - <Start measure> = 0.138534ms
+          1469454756443.015625ms:139661736146816:->TraceDebug.cpp:269 (f2)  f3() = 5
+        1469454756443.069336ms:139661736146816:TraceDebug.cpp:268 (f2) [f2], <Start measure> - <Start measure> = 0.148332ms, <End measure> - <Start measure> = 0.383801ms, Full time: 0.532133ms
+      1469454756442.628174ms:139661719353088:Processing f3()  From TraceDebug.cpp:269 (f2)
+        1469454756443.235596ms:139661719353088:TraceDebug.cpp:262 (f3) [f3]  Start measure
+          1469454756443.310791ms:139661719353088:TraceDebug.cpp:264 (f3)  a = 5
+        1469454756443.375732ms:139661719353088:TraceDebug.cpp:262 (f3) [f3], <End measure> - <Start measure> = 0.146252ms
+      1469454756443.432617ms:139661719353088:->TraceDebug.cpp:269 (f2)  f3() = 5
+    1469454756443.494629ms:139661719353088:TraceDebug.cpp:268 (f2) [f2]Not enough trace to display results.
+  1469454756443.537842ms:139661719353088:->TraceDebug.cpp:274 (f1)  f2() - 1 = 1
+      1469454756443.129883ms:139661736146816:->TraceDebug.cpp:274 (f1)  f2() - 1 = 1
+    1469454756443.652832ms:139661736146816:TraceDebug.cpp:273 (f1) [f1], <Start measure> - <Start measure> = 0.212976ms, <End measure> - <Start measure> = 1.271733ms, Full time: 1.484709ms
+  1469454756443.741943ms:139661736146816:->TraceDebug.cpp:281 (test)  f1() = 1
+    1469454756443.818604ms:139661736146816:TraceDebug.cpp:268 (f2) [f2]  Start measure
+      1469454756443.872314ms:139661736146816:Processing f3()  From TraceDebug.cpp:269 (f2)
+        1469454756443.927002ms:139661736146816:TraceDebug.cpp:262 (f3) [f3]  Start measure
+1469454756444.010498ms:139661719353088:TraceDebug.cpp:273 (f1) [f1]Not enough trace to display results.
+          1469454756443.977783ms:139661736146816:TraceDebug.cpp:264 (f3)  a = 5
+        1469454756444.150391ms:139661736146816:TraceDebug.cpp:262 (f3) [f3], <End measure> - <Start measure> = 0.224016ms
+      1469454756444.203369ms:139661736146816:->TraceDebug.cpp:269 (f2)  f3() = 5
+    1469454756444.249512ms:139661736146816:TraceDebug.cpp:268 (f2) [f2], <End measure> - <Start measure> = 0.433730ms
+1469454756444.309814ms:139661736146816:TraceDebug.cpp:280 (test) [test], <This is the middle> - <Start measure> = 1.811563ms, <End measure> - <This is the middle> = 0.511786ms, Full time: 2.323349ms
+Closing scope
 
 
-  **** Measures with cache enabled ****
+ ****  With cache enabled **** 
 
-1469435661722.615479ms:TraceDebug.cpp:285 (main) [main]  Start measure
-  1469435661722.620605ms:Processing f1()  From TraceDebug.cpp:286 (main)
-    1469435661722.625488ms:TraceDebug.cpp:266 (f1) [f1]  Start measure
-      1469435661722.629639ms:Processing f2() - 1  From TraceDebug.cpp:267 (f1)
-        1469435661722.634033ms:TraceDebug.cpp:261 (f2) [f2]  Start measure
-          1469435661722.639160ms:TraceDebug.cpp:151 (CacheOrPrintOutputs)  INFO: Reserved more space for cache. Now set to 10
-          1469435661722.645020ms:Processing f3()  From TraceDebug.cpp:262 (f2)
-            1469435661722.650146ms:TraceDebug.cpp:255 (f3) [f3]  Start measure
-              1469435661722.653809ms:TraceDebug.cpp:257 (f3)  a = 5
-            1469435661722.657959ms:TraceDebug.cpp:255 (f3) [f3], <End measure> - <Start measure> = 0.008190ms
-            1469435661722.662109ms:TraceDebug.cpp:255 (f3) [f3], <End measure> - <Start measure> = 0.008190ms
-            1469435661722.706055ms:TraceDebug.cpp:255 (f3) [f3], <End measure> - <Start measure> = 0.008190ms, <*** WARNING:Cache was resized when displaying trace informations. This resize inducted 0.006613ms overhead in this measure !!!***)> - <End measure> = 0.004783ms, <Start Printing cache> - <*** WARNING:Cache was resized when displaying trace informations. This resize inducted 0.006613ms overhead in this measure !!!***)> = 0.000000ms, <Done Printing cache> - <Start Printing cache> = 0.043055ms, Full time: 0.056028ms
-          1469435661722.731689ms:->TraceDebug.cpp:262 (f2)  f3() = 5
-        1469435661722.736328ms:TraceDebug.cpp:261 (f2) [f2], <End measure> - <(***!!! Printing inducted 0.043055ms overhead in this measure !!!***)Start measure> = 0.102570ms
-      1469435661722.740723ms:->TraceDebug.cpp:267 (f1)  f2() - 1 = 1
-    1469435661722.746094ms:TraceDebug.cpp:266 (f1) [f1], <End measure> - <(***!!! Printing inducted 0.043055ms overhead in this measure !!!***)Start measure> = 0.120719ms
-  1469435661722.750244ms:->TraceDebug.cpp:286 (main)  f1() = 1
-    1469435661722.755859ms:TraceDebug.cpp:261 (f2) [f2]  Start measure
-      1469435661722.760498ms:Processing f3()  From TraceDebug.cpp:262 (f2)
-        1469435661722.764893ms:TraceDebug.cpp:255 (f3) [f3]  Start measure
-          1469435661722.768311ms:TraceDebug.cpp:257 (f3)  a = 5
-        1469435661722.772461ms:TraceDebug.cpp:255 (f3) [f3], <End measure> - <Start measure> = 0.007834ms
-        1469435661722.776123ms:TraceDebug.cpp:255 (f3) [f3], <End measure> - <Start measure> = 0.007834ms
-        1469435661722.816650ms:TraceDebug.cpp:255 (f3) [f3], <End measure> - <Start measure> = 0.007834ms, <Start Printing cache> - <End measure> = 0.004138ms, <Done Printing cache> - <Start Printing cache> = 0.040124ms, Full time: 0.052096ms
+1469454756444.458984ms:139661736146816:TraceDebug.cpp:280 (test) [test]  Start measure
+1469454756444.510010ms:139661719353088:TraceDebug.cpp:273 (f1) [f1]  Start measure
+  1469454756444.567139ms:139661719353088:Processing f2() - 1  From TraceDebug.cpp:274 (f1)
+  1469454756444.571045ms:139661736146816:Processing f1()  From TraceDebug.cpp:281 (test)
+    1469454756444.611328ms:139661736146816:TraceDebug.cpp:273 (f1) [f1]  Start measure
+    1469454756444.669434ms:139661719353088:TraceDebug.cpp:268 (f2) [f2]  Start measure
+      1469454756444.640869ms:139661736146816:Processing f2() - 1  From TraceDebug.cpp:274 (f1)
+        1469454756444.720703ms:139661736146816:TraceDebug.cpp:268 (f2) [f2]  Start measure
+      1469454756444.708984ms:139661719353088:Processing f3()  From TraceDebug.cpp:269 (f2)
+        1469454756444.766357ms:139661719353088:TraceDebug.cpp:262 (f3) [f3]  Start measure
+          1469454756444.751465ms:139661736146816:Processing f3()  From TraceDebug.cpp:269 (f2)
+            1469454756444.812988ms:139661736146816:TraceDebug.cpp:262 (f3) [f3]  Start measure
+          1469454756444.797119ms:139661719353088:TraceDebug.cpp:264 (f3)  a = 5
+        1469454756444.861816ms:139661719353088:TraceDebug.cpp:262 (f3) [f3], <Start measure> - <Start measure> = 0.048843ms, <End measure> - <Start measure> = 0.044643ms, Full time: 0.093486ms
+              1469454756444.841553ms:139661736146816:TraceDebug.cpp:264 (f3)  a = 5
+            1469454756444.930908ms:139661736146816:TraceDebug.cpp:262 (f3) [f3]Not enough trace to display results.
+      1469454756444.907959ms:139661719353088:->TraceDebug.cpp:269 (f2)  f3() = 5
+    1469454756444.974609ms:139661719353088:TraceDebug.cpp:268 (f2) [f2], <Start measure> - <Start measure> = 0.056501ms, <End measure> - <Start measure> = 0.251670ms, Full time: 0.308171ms
+          1469454756444.956787ms:139661736146816:->TraceDebug.cpp:269 (f2)  f3() = 5
+        1469454756445.034424ms:139661736146816:TraceDebug.cpp:268 (f2) [f2]Not enough trace to display results.
+  1469454756445.013672ms:139661719353088:->TraceDebug.cpp:274 (f1)  f2() - 1 = 1
+1469454756445.075684ms:139661719353088:TraceDebug.cpp:273 (f1) [f1], <Start measure> - <Start measure> = 0.108841ms, <End measure> - <Start measure> = 0.463549ms, Full time: 0.572390ms
+      1469454756445.058594ms:139661736146816:->TraceDebug.cpp:274 (f1)  f2() - 1 = 1
+    1469454756445.131836ms:139661736146816:TraceDebug.cpp:273 (f1) [f1]Not enough trace to display results.
+  1469454756445.150635ms:139661736146816:->TraceDebug.cpp:281 (test)  f1() = 1
+    1469454756445.178223ms:139661736146816:TraceDebug.cpp:268 (f2) [f2]  Start measure
+      1469454756445.200439ms:139661736146816:Processing f3()  From TraceDebug.cpp:269 (f2)
+        1469454756445.223877ms:139661736146816:TraceDebug.cpp:262 (f3) [f3]  Start measure
+          1469454756445.246094ms:139661736146816:TraceDebug.cpp:264 (f3)  a = 5
+        1469454756445.270508ms:139661736146816:TraceDebug.cpp:262 (f3) [f3], <End measure> - <Start measure> = 0.047996ms
+      1469454756445.296143ms:139661736146816:->TraceDebug.cpp:269 (f2)  f3() = 5
+    1469454756445.319336ms:139661736146816:TraceDebug.cpp:268 (f2) [f2], <End measure> - <Start measure> = 0.141516ms
+1469454756445.349854ms:139661736146816:TraceDebug.cpp:280 (test) [test], <This is the middle> - <Start measure> = 0.714934ms, <End measure> - <This is the middle> = 0.179659ms, Full time: 0.894593ms
 
  ```
