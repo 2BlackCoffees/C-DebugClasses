@@ -17,7 +17,6 @@ unsigned int                                                            DebugTra
 std::ofstream                                                           DebugTrace::outputFile;
 #endif
 unsigned int                                                            DebugTrace::traceCacheDeepness = 0;
-std::atomic<double>                                                     DebugTrace::reserveTime(0);
 bool                                                                    DebugTrace::traceActive = true;
 bool                                                                    DebugTrace::displayStartTracePerformance = true;
 std::vector<std::string>                                                DebugTrace::localCache;
@@ -76,7 +75,6 @@ DebugTrace::~DebugTrace() {
     mapFileNameFunctionNameToVectorTimingInfo.erase(keyDebugPerformanceToErase);
   }
 
-  auto getAllDebugPrintDeepness = GetAllDebugPrintDeepness();
   if((debugPrintMustBeDecremented || debugPerformanceMustBeDisplayed) && GetDebugPrintDeepness() > 0) {
     DecreaseDebugPrintDeepness();
     if(debugPrintMustBeDecremented) {
@@ -110,15 +108,7 @@ void DebugTrace::CacheOrPrintTimings(std::string&& output) {
     if(localCache.size() > traceCacheDeepness - 1 || GetDebugPrintDeepness() <= 0) {
       auto startPrintingCacheTime = std::chrono::steady_clock::now();
       localCache.push_back(GetPerformanceResults());
-      for(const std::string & str: localCache) {
-        PRINT_RESULT(str);
-      }
-      localCache.clear();
-      if(reserveTime > 0) {
-        AddTrace(startPrintingCacheTime, "*** WARNING:Cache was resized when displaying trace informations. This resize inducted " +
-                 std::to_string(reserveTime) + std::string(UNIT_TRACE_DEBUG)+ " overhead in this measure !!!***)");
-        reserveTime = 0;
-      }
+      PrintCache();
       // Update all still existing trace points that their measures will be impacted because of the cache display
       AddTrace(startPrintingCacheTime, "Start Printing cache");
       auto endPrintingCacheTime = std::chrono::steady_clock::now();
@@ -134,13 +124,7 @@ void DebugTrace::CacheOrPrintTimings(std::string&& output) {
       }
     }
   } else {
-    if(localCache.size() > 0) {
-      for(const std::string & str: localCache) {
-        PRINT_RESULT(str);
-      }
-      localCache.clear();
-    }
-    // Display results without caching information
+    PrintCache();
     PRINT_RESULT(output);
   }
 }
@@ -151,12 +135,7 @@ void DebugTrace::CacheOrPrintOutputs(std::string&& output) {
   if(traceCacheDeepness > 1) {
     localCache.push_back(output);
     if(localCache.size() > traceCacheDeepness - 1) {
-      auto startResizing = std::chrono::steady_clock::now();
-      if(SetTracePerformanceCacheDeepness(traceCacheDeepness * 2)) {
-        DISPLAY_DEBUG_MESSAGE("INFO: Reserved more space for cache. Now set to " + std::to_string(traceCacheDeepness));
-      }
-      reserveTime = reserveTime + std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> (
-                                         std::chrono::steady_clock::now() - startResizing).count();
+      PrintCache();
     }
   } else {
     // Display results without caching information
