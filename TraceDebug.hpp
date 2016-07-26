@@ -235,7 +235,7 @@
           for(int index = 0; stat(tmpFileName.c_str(), &buffer) == 0; ++index) {
             tmpFileName = fileName + std::to_string(index);
           }
-          outputFile.open(tmpFileName + ".log");
+          outputFile.open(tmpFileName + ".log", std::ofstream::out | std::ofstream::app);
         }
         outputFile << stringToWrite << "\n";
       }
