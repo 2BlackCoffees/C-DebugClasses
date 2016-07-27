@@ -8,32 +8,33 @@
 #ifdef ENABLE_TRACE_DEBUG
 // ==============================================================================================================================
 #ifdef ENABLE_THREAD_SAFE
-std::map<std::thread::id, unsigned int>                                 DebugTrace::debugPrintDeepness;
-std::recursive_mutex                                                    DebugTrace::the_mutex;
+std::map<std::thread::id, unsigned int>                                 TraceDebug::debugPrintDeepness;
+std::recursive_mutex                                                    TraceDebug::the_mutex;
 #else
-unsigned int                                                            DebugTrace::debugPrintDeepness = 0;
+unsigned int                                                            TraceDebug::debugPrintDeepness = 0;
 #endif
 #ifdef WRITE_OUTPUT_TO_FILE
-std::ofstream                                                           DebugTrace::outputFile;
+std::ofstream                                                           TraceDebug::outputFile;
 #endif
-unsigned int                                                            DebugTrace::traceCacheDeepness = 0;
-bool                                                                    DebugTrace::traceActive = true;
-bool                                                                    DebugTrace::displayStartTracePerformance = true;
-std::vector<std::string>                                                DebugTrace::localCache;
-std::map<std::string, int>                                              DebugTrace::mapFileNameToLine;
+unsigned int                                                            TraceDebug::traceCacheDeepness = 0;
+bool                                                                    TraceDebug::traceActive = true;
+bool                                                                    TraceDebug::displayStartTracePerformance = true;
+std::vector<std::string>                                                TraceDebug::localCache;
+std::map<std::string, int>                                              TraceDebug::mapFileNameToLine;
 std::map<std::string,
          std::vector<std::pair<std::string,
-                               std::chrono::steady_clock::time_point>>> DebugTrace::mapFileNameFunctionNameToVectorTimingInfo;
+                               std::chrono::steady_clock::time_point>>> TraceDebug::mapFileNameFunctionNameToVectorTimingInfo;
+static Guard                                                            guard;
 
 // ==============================================================================================================================
-std::string DebugTrace::GetUniqueKey(const std::string & string1,
+std::string TraceDebug::GetUniqueKey(const std::string & string1,
                                      const std::string & string2,
                                      const std::string & string3) {
   return std::move(string1 + string2 + string3);
 }
 
 // ==============================================================================================================================
-DebugTrace::DebugTrace(const std::string & functionName, const std::string & fileName,
+TraceDebug::TraceDebug(const std::string & functionName, const std::string & fileName,
                        int lineNumber, const std::string & uniqueKey): debugPerformanceMustBeDisplayed(true) {
   keyDebugPerformanceToErase = GetUniqueKey(fileName, functionName, uniqueKey);
   GET_THREAD_SAFE_GUARD;
@@ -44,12 +45,12 @@ DebugTrace::DebugTrace(const std::string & functionName, const std::string & fil
   const std::string startMeasure = "Start measure";
   AddTrace(std::chrono::steady_clock::now(), startMeasure);
   if(displayStartTracePerformance) {
-    DebugTrace::PrintString(DebugTrace::GetDiffTimeSinceStartAndThreadId() + ":" + lineHeader + "  " + startMeasure, true);
+    TraceDebug::PrintString(TraceDebug::GetDiffTimeSinceStartAndThreadId() + ":" + lineHeader + "  " + startMeasure, true);
   }
 }
 
 // ==============================================================================================================================
-DebugTrace::DebugTrace(const std::string & functionName, const std::string & fileName, int lineNumber) {
+TraceDebug::TraceDebug(const std::string & functionName, const std::string & fileName, int lineNumber) {
   std::string uniqueKey = GetUniqueKey(fileName, functionName);
   // If key does not exist or key exists and current line is being accessed
   GET_THREAD_SAFE_GUARD;
@@ -68,7 +69,7 @@ DebugTrace::DebugTrace(const std::string & functionName, const std::string & fil
 }
 
 // ==============================================================================================================================
-DebugTrace::~DebugTrace() {
+TraceDebug::~TraceDebug() {
   GET_THREAD_SAFE_GUARD;
   if(debugPerformanceMustBeDisplayed) {
     DisplayPerformanceMeasure();
@@ -81,31 +82,26 @@ DebugTrace::~DebugTrace() {
       mapFileNameToLine.erase(keyDebugPrintToErase);
     }
   }
-
   if(GetAllDebugPrintDeepness() == 0) {
     mapFileNameToLine.clear();
-    traceCacheDeepness = 0;
-    CacheOrPrintTimings("Closing scope");
-#ifdef WRITE_OUTPUT_TO_FILE
-    outputFile.close();
-#endif
   }
+
 }
 
 // ==============================================================================================================================
-void DebugTrace::DisplayPerformanceMeasure() {
+void TraceDebug::DisplayPerformanceMeasure() {
   // Automatically an end of measure trace points when getting out of scope
   AddTrace(std::chrono::steady_clock::now(), "End measure");
   CacheOrPrintTimings(GetPerformanceResults());
 }
 
 // ==============================================================================================================================
-void DebugTrace::CacheOrPrintTimings(std::string&& output) {
+void TraceDebug::CacheOrPrintTimings(std::string&& output) {
   // Is the cache enabled ?
   if(traceCacheDeepness > 1) {
     localCache.push_back(output);
     // Print all cache information when maximum cache size happened
-    if(localCache.size() > traceCacheDeepness - 1 || GetDebugPrintDeepness() <= 0) {
+    if(localCache.size() >= traceCacheDeepness) {
       auto startPrintingCacheTime = std::chrono::steady_clock::now();
       localCache.push_back(GetPerformanceResults());
       PrintCache();
@@ -124,13 +120,12 @@ void DebugTrace::CacheOrPrintTimings(std::string&& output) {
       }
     }
   } else {
-    PrintCache();
     PRINT_RESULT(output);
   }
 }
 
 // ==============================================================================================================================
-void DebugTrace::CacheOrPrintOutputs(std::string&& output) {
+void TraceDebug::CacheOrPrintOutputs(std::string&& output) {
   // Is the cache enabled ?
   if(traceCacheDeepness > 1) {
     localCache.push_back(output);
@@ -145,7 +140,7 @@ void DebugTrace::CacheOrPrintOutputs(std::string&& output) {
 }
 
 // ==============================================================================================================================
-void DebugTrace::AddTrace(std::chrono::steady_clock::time_point timePoint, const std::string & variableName) {
+void TraceDebug::AddTrace(std::chrono::steady_clock::time_point timePoint, const std::string & variableName) {
 
   GET_THREAD_SAFE_GUARD;
   std::pair<std::string, std::chrono::steady_clock::time_point> tmpPair = std::make_pair(variableName, timePoint);
@@ -163,19 +158,19 @@ void DebugTrace::AddTrace(std::chrono::steady_clock::time_point timePoint, const
 }
 
 // ==============================================================================================================================
-void DebugTrace::ActiveTrace(bool activate) {
+void TraceDebug::ActiveTrace(bool activate) {
   GET_THREAD_SAFE_GUARD;
   traceActive = activate;
 }
 
 // ==============================================================================================================================
-bool DebugTrace::IsTraceActive() {
+bool TraceDebug::IsTraceActive() {
   GET_THREAD_SAFE_GUARD;
   return traceActive;
 }
 
 // ==============================================================================================================================
-std::string DebugTrace::getSpaces() {
+std::string TraceDebug::getSpaces() {
   if(GetDebugPrintDeepness() > 1) {
     return std::string(2 * (GetDebugPrintDeepness() - 1), ' ');
   }
@@ -183,11 +178,11 @@ std::string DebugTrace::getSpaces() {
 }
 
 // ==============================================================================================================================
-void DebugTrace::PrintString(const std::string & inStr, bool showHierarchy) {
+void TraceDebug::PrintString(const std::string & inStr, bool showHierarchy) {
   GET_THREAD_SAFE_GUARD;
   std::string str;
   if(showHierarchy) {
-    str = DebugTrace::getSpaces() + inStr;
+    str = TraceDebug::getSpaces() + inStr;
   } else {
     str = inStr;
   }
@@ -195,10 +190,10 @@ void DebugTrace::PrintString(const std::string & inStr, bool showHierarchy) {
 }
 
 // ==============================================================================================================================
-std::string DebugTrace::GetPerformanceResults() {
+std::string TraceDebug::GetPerformanceResults() {
   auto performanceInfos = mapFileNameFunctionNameToVectorTimingInfo[keyDebugPerformanceToErase];
 
-  std::string tmp = DebugTrace::getSpaces() + DebugTrace::GetDiffTimeSinceStartAndThreadId() + ":" + lineHeader;
+  std::string tmp = TraceDebug::getSpaces() + TraceDebug::GetDiffTimeSinceStartAndThreadId() + ":" + lineHeader;
   auto size = performanceInfos.size() - 1;
 
   if(size > 0) {
@@ -227,6 +222,115 @@ std::string DebugTrace::GetPerformanceResults() {
   }
   return tmp;
 }
+
+// ==============================================================================================================================
+void TraceDebug::SetTracePerformanceCacheDeepness(unsigned int cacheDeepness) {
+  GET_THREAD_SAFE_GUARD;
+  if(cacheDeepness != traceCacheDeepness) {
+    traceCacheDeepness = cacheDeepness;
+    // Set a little bigger as the time for displaying output will
+    // automatically be added.
+    localCache.reserve(traceCacheDeepness + 3);
+  }
+}
+
+// ==============================================================================================================================
+void TraceDebug::Finalize() {
+  GET_THREAD_SAFE_GUARD;
+  TraceDebug::PrintCache();
+  PRINT_RESULT("Closing program");
+#ifdef WRITE_OUTPUT_TO_FILE
+  if(outputFile.is_open()) outputFile.close();
+#endif
+
+}
+
+// ==============================================================================================================================
+std::string TraceDebug::GetDiffTimeSinceStartAndThreadId() {
+  std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> elapsedTime =
+      std::chrono::system_clock::now().time_since_epoch();
+  std::string returnValue = std::to_string(elapsedTime.count()) + UNIT_TRACE_DEBUG;
+#ifdef ENABLE_THREAD_SAFE
+  std::ostringstream buffer;
+  buffer << std::this_thread::get_id();
+  returnValue += ":" + buffer.str();
+#endif
+  return returnValue;
+}
+
+// ==============================================================================================================================
+void TraceDebug::DisplayStartTracePerformance(bool inDisplayStartTracePerformance) {
+  GET_THREAD_SAFE_GUARD;
+  displayStartTracePerformance = inDisplayStartTracePerformance;
+}
+
+// ==============================================================================================================================
+void TraceDebug::PrintCache() {
+  if(localCache.size() > 0) {
+    for(const std::string & str: localCache) {
+      PRINT_RESULT(str);
+    }
+    localCache.clear();
+  }
+
+}
+
+// ==============================================================================================================================
+void TraceDebug::IncreaseDebugPrintDeepness() {
+#ifdef ENABLE_THREAD_SAFE
+  ++debugPrintDeepness[std::this_thread::get_id()];
+#else
+  ++debugPrintDeepness;
+#endif
+}
+
+// ==============================================================================================================================
+void TraceDebug::DecreaseDebugPrintDeepness() {
+#ifdef ENABLE_THREAD_SAFE
+  --debugPrintDeepness[std::this_thread::get_id()];
+#else
+  --debugPrintDeepness;
+#endif
+}
+
+// ==============================================================================================================================
+unsigned int TraceDebug::GetDebugPrintDeepness() {
+#ifdef ENABLE_THREAD_SAFE
+  return debugPrintDeepness[std::this_thread::get_id()];
+#else
+  return debugPrintDeepness;
+#endif
+}
+
+// ==============================================================================================================================
+unsigned int TraceDebug::GetAllDebugPrintDeepness() {
+#ifdef ENABLE_THREAD_SAFE
+  return std::accumulate(debugPrintDeepness.begin(), debugPrintDeepness.end(), 0,
+                         [](unsigned int a, std::pair<std::thread::id, unsigned int> b) {
+    return a + b.second;
+  });
+#else
+  return GetDebugPrintDeepness();
+#endif
+}
+
+// ==============================================================================================================================
+#ifdef WRITE_OUTPUT_TO_FILE
+void TraceDebug::WriteToFile(const std::string& stringToWrite, const std::string& fileName) {
+  GET_THREAD_SAFE_GUARD;
+  if(!outputFile.is_open()) {
+    // Search for a non existing filename
+    std::string tmpFileName = fileName + "-" + std::to_string(GETPID);
+    struct stat buffer;
+    for(int index = 0; stat(tmpFileName.c_str(), &buffer) == 0; ++index) {
+      tmpFileName = fileName + std::to_string(index);
+    }
+    outputFile.open(tmpFileName + ".log", std::ofstream::out);
+  }
+  outputFile << stringToWrite << "\n";
+}
+#endif
+
 
 // ==============================================================================================================================
 // ==============================================================================================================================
@@ -351,3 +455,5 @@ Closing scope
 */
 #endif
 #endif
+
+
