@@ -71,17 +71,20 @@ TraceDebug::TraceDebug(const std::string & functionName, const std::string & fil
 // ==============================================================================================================================
 TraceDebug::~TraceDebug() {
   GET_THREAD_SAFE_GUARD;
+  // Display performance informations
   if(debugPerformanceMustBeDisplayed) {
     DisplayPerformanceMeasure();
     mapFileNameFunctionNameToVectorTimingInfo.erase(keyDebugPerformanceToErase);
   }
 
+  // Manage hierachy information (number of spaces)
   if((debugPrintMustBeDecremented || debugPerformanceMustBeDisplayed) && GetDebugPrintDeepness() > 0) {
     DecreaseDebugPrintDeepness();
     if(debugPrintMustBeDecremented) {
       mapFileNameToLine.erase(keyDebugPrintToErase);
     }
   }
+
   if(GetAllDebugPrintDeepness() == 0) {
     mapFileNameToLine.clear();
   }
@@ -90,9 +93,10 @@ TraceDebug::~TraceDebug() {
 
 // ==============================================================================================================================
 void TraceDebug::DisplayPerformanceMeasure() {
-  // Automatically an end of measure trace points when getting out of scope
+  // Automatically add an end of measure trace points when getting out of scope
   AddTrace(std::chrono::steady_clock::now(), "End measure");
-  CacheOrPrintTimings(GetPerformanceResults());
+  std::string timingInformation = GetPerformanceResults();
+  if(!timingInformation.empty()) CacheOrPrintTimings(std::move(timingInformation));
 }
 
 // ==============================================================================================================================
@@ -126,7 +130,8 @@ void TraceDebug::CacheOrPrintTimings(std::string&& output) {
 
 // ==============================================================================================================================
 void TraceDebug::CacheOrPrintOutputs(std::string&& output) {
-  // Is the cache enabled ?
+  // If the cache is enabled, store output into cache
+  // If the cache reached its limit print it out
   if(traceCacheDeepness > 1) {
     localCache.push_back(output);
     if(localCache.size() > traceCacheDeepness - 1) {
@@ -143,10 +148,11 @@ void TraceDebug::CacheOrPrintOutputs(std::string&& output) {
 void TraceDebug::AddTrace(std::chrono::steady_clock::time_point timePoint, const std::string & variableName) {
 
   GET_THREAD_SAFE_GUARD;
+  // Associate name of variable with time information
   std::pair<std::string, std::chrono::steady_clock::time_point> tmpPair = std::make_pair(variableName, timePoint);
 
+  // Append structure to the map mapFileNameFunctionNameToVectorTimingInfo referenced by the key keyDebugPerformanceToErase
   auto vectorTimingInfoIt = mapFileNameFunctionNameToVectorTimingInfo.find(keyDebugPerformanceToErase);
-
   if(vectorTimingInfoIt == mapFileNameFunctionNameToVectorTimingInfo.end()) {
     std::vector<std::pair<std::string, std::chrono::steady_clock::time_point>> tmpVector;
     tmpVector.push_back(tmpPair);
@@ -191,12 +197,15 @@ void TraceDebug::PrintString(const std::string & inStr, bool showHierarchy) {
 
 // ==============================================================================================================================
 std::string TraceDebug::GetPerformanceResults() {
+  // Get performance info for key keyDebugPerformanceToErase
   auto performanceInfos = mapFileNameFunctionNameToVectorTimingInfo[keyDebugPerformanceToErase];
 
   std::string tmp = TraceDebug::getSpaces() + TraceDebug::GetDiffTimeSinceStartAndThreadId() + ":" + lineHeader;
-  auto size = performanceInfos.size() - 1;
 
+  // If the number of information stored is greater than 1 a difference can be computed
+  auto size = performanceInfos.size() - 1;
   if(size > 0) {
+    // Compute all timing differences
     for(decltype(size) index = 0; index < size; ++index)
     {
       const auto& valueMin = performanceInfos[index];
@@ -216,9 +225,12 @@ std::string TraceDebug::GetPerformanceResults() {
       tmp += ", Full time: " +
           std::to_string(std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> (valueMax.second - valueMin.second).count()) +
           std::string(UNIT_TRACE_DEBUG);
-    }
+    }    
+  } else if (size == 1) {
+    // We have 1 timing information only, no difference can be computed
+    tmp += ": Not enough trace to display results.";
   } else {
-    tmp += "Not enough trace to display results.";
+    tmp = "";
   }
   return tmp;
 }
@@ -236,6 +248,7 @@ void TraceDebug::SetTracePerformanceCacheDeepness(unsigned int cacheDeepness) {
 
 // ==============================================================================================================================
 void TraceDebug::Finalize() {
+  // This method is called by a guard statically created that will automatically expire when the program expires.
   GET_THREAD_SAFE_GUARD;
   TraceDebug::PrintCache();
   PRINT_RESULT("Closing program");
