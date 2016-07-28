@@ -20,39 +20,45 @@ In TraceDebug.hpp, you will find following defines that might need to be configu
 
 Following macros are available:
 
-```
-  DISPLAY_IMMEDIATE_DEBUG_VALUE(value)
-  ------------------------------------
-  
+
+## DISPLAY_IMMEDIATE_DEBUG_VALUE(value)
+
     Displays:
+```
       EpochSince1969:ThreadId:FileName:LineNumber (functionName) value = <ItsValue>
-      
+```
+
         - EpochSince1969 is useful if many process are communicationg with each other to be able to understand synchronization problems.
         - ThreadId is not displayed if ENABLE_THREAD_SAFE is not enabled.
         - A number of blank spaces defining the deepness of the hierarchy will be displayed providing information on the hierarchical deepnes of the call.    
 
     Example:
+```c++
       int f3() {
         int a = 5;
         DISPLAY_IMMEDIATE_DEBUG_VALUE(a);    
         return a;
       }
-    
+```
+
     Will output something similar to:
+```
       1469684456654.831543ms:140137838221056:TraceDebug.cpp:359 (f3)  a = 5
-    
-  DISPLAY_DEBUG_VALUE(functionNameReturningAValue())
-  --------------------------------------------------
-  
+```
+
+## DISPLAY_DEBUG_VALUE(functionNameReturningAValue())
+
     Displays:
+```
       EpochSince1969:ThreadId:Processing functionNameReturningAValue From  FileName:LineNumber (fromFunctionName)
       EpochSince1969:ThreadId:->FileName:LineNumber (fromFunctionName) functionNameReturningAValue() = <ItsValue>
-    
+```
         - EpochSince1969 is useful if many process are communicationg with each other to be able to understand synchronization problems.
         - ThreadId is not displayed if ENABLE_THREAD_SAFE is not enabled.
         - A number of blank spaces defining the deepness of the hierarchy will be displayed providing information on the hierarchical deepnes of the call.    
 
     Example:
+```c++
       int f3() {
         int a = 5;
         return a;    
@@ -61,82 +67,99 @@ Following macros are available:
         DISPLAY_DEBUG_VALUE(f3());
         return f3();
       }
-    
+```
     Will output something similar to:
+```
       1469684456654.476807ms:140137855014784:Processing f3()  From TraceDebug.cpp:364 (f2)
       1469684456655.108154ms:140137838221056:->TraceDebug.cpp:364 (f2)  f3() = 5
+```
 
-  DISPLAY_DEBUG_MESSAGE("My message")
-  -----------------------------------
-    
+## DISPLAY_DEBUG_MESSAGE("My message")
+
     Displays:
+```
       EpochSince1969:ThreadId:FileName:LineNumber (functionName) My message
-    
+```
         - EpochSince1969 is useful if many process are communicationg with each other to be able to understand synchronization problems.
         - ThreadId is not displayed if ENABLE_THREAD_SAFE is not enabled.
         - A number of blank spaces defining the deepness of the hierarchy will be displayed providing information on the hierarchical deepnes of the call.    
 
     
     Example:
+```
       void f3() {
         DISPLAY_DEBUG_MESSAGE("My message");    
       }
+```
     
     Will output something similar to:
+```
       1469695056816.514648ms:139934998378368:TraceDebug.cpp:374 (f3) My message
+```
       
-  START_TRACE_PERFORMANCE(uniqueKey)      
+## START_TRACE_PERFORMANCE(uniqueKey)      
   ----------------------------------
     Provides timing in the current scope.
     
     Displays:
+```
       EpochSince1969:ThreadId:FileName:LineNumber (functionName) [uniqueKey] Start measure
       EpochSince1969:ThreadId:FileName:LineNumber (functionName) [uniqueKey] , <End measure> - <Start measure> = <Time spent>
-    
+```
         - EpochSince1969 is useful if many process are communicationg with each other to be able to understand synchronization problems.
         - ThreadId is not displayed if ENABLE_THREAD_SAFE is not enabled.
         - A number of blank spaces defining the deepness of the hierarchy will be displayed providing information on the hierarchical deepnes of the call.    
     
     Example:
+```c++
       int f3() {
         START_TRACE_PERFORMANCE(f3);
         int a = 5;
         return a;    
       }
+```
     
     Will output something similar to:    
+```
       1469684456655.628174ms:140137855014784:TraceDebug.cpp:357 (f3) [f3]  Start measure
       1469684456655.718994ms:140137855014784:TraceDebug.cpp:357 (f3) [f3], <End measure> - <Start measure> = 0.091847ms
+```
 
-   ADD_TRACE_PERFORMANCE(uniqueKey, userInfo)
-   ------------------------------------------
+## ADD_TRACE_PERFORMANCE(uniqueKey, userInfo)
+
      Provides intermediate timing in the scope of the referenced key of START_TRACE_PERFORMANCE.
+     
+     Displays:
+```
       EpochSince1969:ThreadId:FileName:LineNumber (functionName) [uniqueKey] Start measure
       EpochSince1969:ThreadId:FileName:LineNumber (functionName) [uniqueKey] , <userInfo> - <Start measure> = <Time spent 1>, <End measure> - <Start measure> = <Time spent 2>, Full time: <Full time spent>
+```
 
     Example:
+```c++
       int test() {
         START_TRACE_PERFORMANCE(test);
         doSth1();
         ADD_TRACE_PERFORMANCE("Before doSth2");
         doSth2();
       }
-      
+```
+
     Will output something similar to:    
+```
       1469684456653.974365ms:140137855014784:TraceDebug.cpp:375 (test) [test]  Start measure
       1469684456655.876709ms:140137855014784:TraceDebug.cpp:375 (test) [test], <Before doSth2> - <Start measure> = 1.549560ms, <End measure> - <Before doSth2> = 0.359068ms, Full time: 1.908628ms
+```
 
-  SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(integer value)
-  ---------------------------------------------------
+## SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(integer value)
     If the integer value is greater than 0, then all information are stored in a cahe. Once the number of cached lines reached the inger value, all is printed once.
     The time to flush the cash is as well indicated.
     
-  DISPLAY_START_TRACE_PERFORMANCE(boolean)
-  ----------------------------------------
+## DISPLAY_START_TRACE_PERFORMANCE(boolean)
     If set to true, then the first line associated to the macro START_TRACE_PERFORMANCE is displayed (default behaviour).
     If set to false, only the resulting time is displayed.
     
-```  
+
      
 As an example, a small C++ example:
 
