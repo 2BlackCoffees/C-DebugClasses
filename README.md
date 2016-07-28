@@ -108,7 +108,7 @@ Following macros are available:
         - EpochSince1969 is useful if many process are communicationg with each other to be able to understand synchronization problems.
         - ThreadId is not displayed if ENABLE_THREAD_SAFE is not enabled.
         - A number of blank spaces defining the deepness of the hierarchy will be displayed providing information on the hierarchical deepnes of the call.    
-    ```
+```
 
 ```c++
     Example:
