@@ -39,6 +39,11 @@
   // output will be written into a file
   //#define USE_QT_DEBUG
 
+
+  // If defined, traces are printed in ns otherwise in ms
+  //#define UNIT_TRACE_DEBUG_NANO
+
+
 // =============================================================================================
 
   #ifdef ENABLE_THREAD_SAFE
@@ -47,8 +52,6 @@
     #define GET_THREAD_SAFE_GUARD
   #endif
 
-  // Select here micro or milliseconds traces
-  //#define UNIT_TRACE_DEBUG_NANO
   #ifdef UNIT_TRACE_DEBUG_NANO
     #define UNIT_TRACE_DEBUG "ns"
     #define UNIT_TRACE_TEMPLATE_TYPE std::nano
@@ -89,6 +92,8 @@
 
   #define TOKENPASTE(x, y) x ## y
   #define TOKENPASTE_EXPAND(x, y) TOKENPASTE(x , y)
+
+// =============================================================================================
 
   // Activate traces
   #define DISPLAY_DEBUG_ACTIVE_TRACE TraceDebug::ActiveTrace(true)
