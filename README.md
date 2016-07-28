@@ -32,9 +32,8 @@ Following macros are available:
         - A number of blank spaces defining the deepness of the hierarchy will be displayed providing information on the hierarchical deepnes of the call.    
 ```
 
-    Example:
-    
 ```c++
+    Example:
       int f3() {
         int a = 5;
         DISPLAY_IMMEDIATE_DEBUG_VALUE(a);    
