@@ -7,7 +7,9 @@ The 2 files TraceDebug.hpp and TraceDebug.cpp allow to perform intrusiv debug an
 
 These are most macros. 
 Before starting make sure the configuration matches your requirements.
-In TraceDebug.hpp, you will find following defines that might need to be configured for your project:
+In TraceDebug.hpp, you will find following defines that might need to be configured for your project.
+
+## Configuration
 ```  
   TRACE_DEBUG_HPP_DEBUG_LOCAL: Will create a main to make a local example run, you certainly do not want to keep this one in your project. Comment it out.
 
@@ -162,9 +164,20 @@ Following macros are available:
     If set to true, then the first line associated to the macro START_TRACE_PERFORMANCE is displayed (default behaviour).
     If set to false, only the resulting time is displayed.
     
+## Compilation
+Compile with MSVC2013: 
+```
+   cl /EHsc TraceDebug.cpp
+```
 
-     
-As an example, a small C++ example:
+Compile with gcc: 
+```
+  g++ -std=c++11 -o TraceDebug TraceDebug.cpp -pthread
+```
+
+## Example     
+
+Following C++ file:
 
 ```c++
 int f3() {
@@ -278,3 +291,4 @@ Provides following output:
 1469712120724.594971ms:139700164831104:TraceDebug.cpp:376 (test) [test], <This is the middle> - <Start measure> = 0.402124ms, <End measure> - <This is the middle> = 0.094128ms, Full time: 0.496252ms
 
  ```
+
