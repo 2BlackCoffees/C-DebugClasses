@@ -1,6 +1,6 @@
 # C++ DebugClasses
 
-These 2 files allow to perform intrusiv debug and performance analyze of a C++ Program.
+The 2 files TraceDebug.hpp and TraceDebug.cpp allow to perform intrusiv debug and performance analyze of a C++ Program.
 
 These are most macros. 
 Before starting make sure the configuration matches your requirements.
