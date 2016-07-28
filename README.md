@@ -1,6 +1,9 @@
 # C++ DebugClasses
 
 The 2 files TraceDebug.hpp and TraceDebug.cpp allow to perform intrusiv debug and performance analyze of a C++ Program.
+* These macros are by default configured to be thread safe.
+* Traces can be cached.
+* Output can be redirected to a file, std::cout or qDebug for Qt.
 
 These are most macros. 
 Before starting make sure the configuration matches your requirements.
