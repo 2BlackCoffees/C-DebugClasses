@@ -346,6 +346,8 @@ void TraceDebug::WriteToFile(const std::string& stringToWrite, const std::string
     outputFile.open(tmpFileName + ".log", std::ofstream::out);
   }
   outputFile << stringToWrite << "\n";
+  // We need the output immidiately
+  outputFile.flush();
 }
 #endif
 
