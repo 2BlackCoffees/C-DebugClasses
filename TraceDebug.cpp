@@ -291,9 +291,6 @@ void TraceDebug::Finalize()
 #ifdef WRITE_OUTPUT_TO_FILE
   if (outputFile.is_open())
     outputFile.close();
-  #ifdef USE_QT_DEBUG
-  delete qDebugLogger;
-  #endif
 #endif
 }
 

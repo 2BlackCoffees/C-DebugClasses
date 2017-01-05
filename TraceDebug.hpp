@@ -224,18 +224,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       static std::string GetDiffTimeSinceStartAndThreadId();
       static void DisplayStartTracePerformance(bool inDisplayStartTracePerformance);
 #ifdef USE_QT_DEBUG
-      static QBuffer qDebugBuffer;
-      static QDebug * qDebugLogger;
-
       template <typename T>
       static std::string QtToString(const T& dataToWrite) {
-        if(!qDebugLogger)
-        {
-          qDebugBuffer.open(QIODevice::ReadWrite);
-          qDebugLogger = new QDebug(&qDebugBuffer);
-        }
-        *qDebugLogger << dataToWrite << endl;
-        return qDebugBuffer.data().data();
+        GET_THREAD_SAFE_GUARD;
+        QByteArray byteArray;
+        QBuffer qDebugBuffer(&byteArray);
+        qDebugBuffer.open(QIODevice::ReadWrite);
+        QDebug qDebugLogger(&qDebugBuffer);
+        qDebugLogger << dataToWrite << flush;
+        std::string tmp(qDebugBuffer.data().data());
+        return tmp;
       }
 #endif
 
