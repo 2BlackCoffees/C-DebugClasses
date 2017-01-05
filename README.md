@@ -15,9 +15,9 @@ In TraceDebug.hpp, you will find following defines that might need to be configu
 
   ENABLE_THREAD_SAFE:          If you are ** not ** running a multi threaded program comment this define.
   
-  WRITE_OUTPUT_TO_FILE:        If not commented, write outputs into a file. Comment to write to std::out or qDebug if you are using Qt.
+  WRITE_OUTPUT_TO_FILE:        If not commented, write outputs into a file. Comment to write to std::out or to qDebug stream if USE_QT_DEBUG is uncommented.
 
-  USE_QT_DEBUG:                Commented, writes to std::out. Otherwise uses qDebug: However if WRITE_OUTPUT_TO_FILE is defined, then output will anyway be written into a file.
+  USE_QT_DEBUG:                Commented, writes to std::out. Otherwise uses qDebug. If WRITE_OUTPUT_TO_FILE is defined, then output might be processed by qDebug.
   
   UNIT_TRACE_DEBUG_NANO:       If commented, traces are displayed in ms. If not comented, traces are displayed in ns.
 
