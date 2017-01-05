@@ -35,8 +35,8 @@ unsigned int                                                            TraceDeb
 std::ofstream                                                           TraceDebug::outputFile;
 #endif
 #ifdef USE_QT_DEBUG
-QBuffer TraceDebug::qDebugBuffer;
-QDebug * TraceDebug::qDebugLogger = nullptr;
+QBuffer                                                                 TraceDebug::qDebugBuffer;
+QDebug *                                                                TraceDebug::qDebugLogger = nullptr;
 #endif
 unsigned int                                                            TraceDebug::traceCacheDeepness = 0;
 bool                                                                    TraceDebug::traceActive = true;
@@ -46,7 +46,7 @@ std::map<std::string, int>                                              TraceDeb
 std::map<std::string,
          std::vector<std::pair<std::string,
                                std::chrono::steady_clock::time_point>>>
-        TraceDebug::mapFileNameFunctionNameToVectorTimingInfo;
+                                                                        TraceDebug::mapFileNameFunctionNameToVectorTimingInfo;
 
 // ==============================================================================================================================
 std::string TraceDebug::GetUniqueKey(const std::string & string1,
@@ -255,7 +255,7 @@ std::string TraceDebug::GetPerformanceResults() {
                                .count())
              + std::string(UNIT_TRACE_DEBUG);
     }
-    }    
+  }
   else if (size == 1)
   {
     // We have 1 timing information only, no difference can be computed
@@ -293,7 +293,7 @@ void TraceDebug::Finalize()
     outputFile.close();
   #ifdef USE_QT_DEBUG
   delete qDebugLogger;
-#endif
+  #endif
 #endif
 }
 

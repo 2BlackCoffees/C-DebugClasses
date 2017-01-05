@@ -234,7 +234,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
           qDebugBuffer.open(QIODevice::ReadWrite);
           qDebugLogger = new QDebug(&qDebugBuffer);
         }
-        *qDebugLogger << dataToWrite << flush;
+        *qDebugLogger << dataToWrite << endl;
         return qDebugBuffer.data().data();
       }
 #endif
