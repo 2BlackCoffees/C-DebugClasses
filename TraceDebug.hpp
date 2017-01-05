@@ -83,7 +83,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       #include <unistd.h>
       #define GETPID getpid()
     #endif
-    #define PRINT_RESULT(string_to_print) TraceDebug::WriteToFile(string_to_print, "TraceDebug");
+    #ifdef USE_QT_DEBUG
+      #include <QDebug>
+      #include <QBuffer>
+      #define PRINT_RESULT(string_to_print) TraceDebug::WriteToFile(string_to_print, "TraceDebugQt");
+    #else
+      #define PRINT_RESULT(string_to_print) TraceDebug::WriteToFile(string_to_print, "TraceDebug");
+    #endif
   #endif
 
   // =============================================================================================
@@ -128,6 +134,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     TOKENPASTE_EXPAND(__UnusedStream, __LINE__) << TraceDebug::GetDiffTimeSinceStartAndThreadId() << ":" << __FILENAME__ << ":" << __LINE__ << " ("<< __func__ << ")  " << #value << " = " << (value); \
     TraceDebug::PrintString(TOKENPASTE_EXPAND(__UnusedStream, __LINE__).str(), true);\
   }
+#ifdef USE_QT_DEBUG
+#define DISPLAY_IMMEDIATE_DEBUG_QT_VALUE(value) DISPLAY_IMMEDIATE_DEBUG_VALUE(TraceDebug::QtToString(value))
+#endif
   // Display a message and preceeded by blank spaces defining the deepness of the hierarchy
   #define DISPLAY_DEBUG_MESSAGE(message) { \
       TraceDebug TOKENPASTE_EXPAND(__Unused, __LINE__)(__func__, __FILENAME__, __LINE__); \
@@ -214,6 +223,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       static void Finalize();
       static std::string GetDiffTimeSinceStartAndThreadId();
       static void DisplayStartTracePerformance(bool inDisplayStartTracePerformance);
+#ifdef USE_QT_DEBUG
+      static QBuffer qDebugBuffer;
+      static QDebug * qDebugLogger;
+
+      template <typename T>
+      static std::string QtToString(const T& dataToWrite) {
+        if(!qDebugLogger)
+        {
+          qDebugBuffer.open(QIODevice::ReadWrite);
+          qDebugLogger = new QDebug(&qDebugBuffer);
+        }
+        *qDebugLogger << dataToWrite << flush;
+        return qDebugBuffer.data().data();
+      }
+#endif
 
   private:
       std::string GetPerformanceResults();

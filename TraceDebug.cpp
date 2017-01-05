@@ -3,11 +3,23 @@ The MIT License (MIT)
 
 Copyright (c) 2BlackCoffees 2016
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 #include "TraceDebug.hpp"
@@ -22,6 +34,10 @@ unsigned int                                                            TraceDeb
 #ifdef WRITE_OUTPUT_TO_FILE
 std::ofstream                                                           TraceDebug::outputFile;
 #endif
+#ifdef USE_QT_DEBUG
+QBuffer TraceDebug::qDebugBuffer;
+QDebug * TraceDebug::qDebugLogger = nullptr;
+#endif
 unsigned int                                                            TraceDebug::traceCacheDeepness = 0;
 bool                                                                    TraceDebug::traceActive = true;
 bool                                                                    TraceDebug::displayStartTracePerformance = true;
@@ -29,14 +45,15 @@ std::vector<std::string>                                                TraceDeb
 std::map<std::string, int>                                              TraceDebug::mapFileNameToLine;
 std::map<std::string,
          std::vector<std::pair<std::string,
-                               std::chrono::steady_clock::time_point>>> TraceDebug::mapFileNameFunctionNameToVectorTimingInfo;
-static Guard                                                            guard;
+                               std::chrono::steady_clock::time_point>>>
+        TraceDebug::mapFileNameFunctionNameToVectorTimingInfo;
 
 // ==============================================================================================================================
 std::string TraceDebug::GetUniqueKey(const std::string & string1,
                                      const std::string & string2,
-                                     const std::string & string3) {
-  return std::move(string1 + string2 + string3);
+                                     const std::string& string3)
+{
+  return string1 + string2 + string3;
 }
 
 // ==============================================================================================================================
@@ -220,31 +237,43 @@ std::string TraceDebug::GetPerformanceResults() {
       {
         tmp += ", ";
       }
-      tmp += "<" + valueMax.first + "> - <" + valueMin.first + "> = " +
-          std::to_string(std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> (valueMax.second - valueMin.second).count()) +
-          std::string(UNIT_TRACE_DEBUG);
+      tmp += "<" + valueMax.first + "> - <" + valueMin.first + "> = "
+             + std::to_string(
+                       std::chrono::duration<double, UNIT_TRACE_TEMPLATE_TYPE>(
+                               valueMax.second - valueMin.second)
+                               .count())
+             + std::string(UNIT_TRACE_DEBUG);
     }
     if(size > 1)
     {
       const auto& valueMin = performanceInfos[0];
       const auto& valueMax = performanceInfos[size];
-      tmp += ", Full time: " +
-          std::to_string(std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> (valueMax.second - valueMin.second).count()) +
-          std::string(UNIT_TRACE_DEBUG);
+      tmp += ", Full time: "
+             + std::to_string(
+                       std::chrono::duration<double, UNIT_TRACE_TEMPLATE_TYPE>(
+                               valueMax.second - valueMin.second)
+                               .count())
+             + std::string(UNIT_TRACE_DEBUG);
+    }
     }    
-  } else if (size == 1) {
+  else if (size == 1)
+  {
     // We have 1 timing information only, no difference can be computed
     tmp += ": Not enough trace to display results.";
-  } else {
+  }
+  else
+  {
     tmp = "";
   }
   return tmp;
 }
 
 // ==============================================================================================================================
-void TraceDebug::SetTracePerformanceCacheDeepness(unsigned int cacheDeepness) {
+void TraceDebug::SetTracePerformanceCacheDeepness(unsigned int cacheDeepness)
+{
   GET_THREAD_SAFE_GUARD;
-  if(cacheDeepness != traceCacheDeepness) {
+  if (cacheDeepness != traceCacheDeepness)
+  {
     traceCacheDeepness = cacheDeepness;
     // Set a little bigger as the time for displaying output will
     // automatically be added.
@@ -253,21 +282,28 @@ void TraceDebug::SetTracePerformanceCacheDeepness(unsigned int cacheDeepness) {
 }
 
 // ==============================================================================================================================
-void TraceDebug::Finalize() {
-  // This method is called by a guard statically created that will automatically expire when the program expires.
+void TraceDebug::Finalize()
+{
+  // This method is called by a guard statically created that will
+  // automatically expire when the program expires.
   GET_THREAD_SAFE_GUARD;
   TraceDebug::PrintCache();
 #ifdef WRITE_OUTPUT_TO_FILE
-  if(outputFile.is_open()) outputFile.close();
+  if (outputFile.is_open())
+    outputFile.close();
+  #ifdef USE_QT_DEBUG
+  delete qDebugLogger;
 #endif
-
+#endif
 }
 
 // ==============================================================================================================================
-std::string TraceDebug::GetDiffTimeSinceStartAndThreadId() {
+std::string TraceDebug::GetDiffTimeSinceStartAndThreadId()
+{
   std::chrono::duration <double, UNIT_TRACE_TEMPLATE_TYPE> elapsedTime =
       std::chrono::system_clock::now().time_since_epoch();
-  std::string returnValue = std::to_string(elapsedTime.count()) + UNIT_TRACE_DEBUG;
+  std::string returnValue =
+          std::to_string(elapsedTime.count()) + UNIT_TRACE_DEBUG;
 #ifdef ENABLE_THREAD_SAFE
   std::ostringstream buffer;
   buffer << std::this_thread::get_id();
@@ -277,24 +313,29 @@ std::string TraceDebug::GetDiffTimeSinceStartAndThreadId() {
 }
 
 // ==============================================================================================================================
-void TraceDebug::DisplayStartTracePerformance(bool inDisplayStartTracePerformance) {
+void TraceDebug::DisplayStartTracePerformance(
+        bool inDisplayStartTracePerformance)
+{
   GET_THREAD_SAFE_GUARD;
   displayStartTracePerformance = inDisplayStartTracePerformance;
 }
 
 // ==============================================================================================================================
-void TraceDebug::PrintCache() {
-  if(localCache.size() > 0) {
-    for(const std::string & str: localCache) {
+void TraceDebug::PrintCache()
+{
+  if (localCache.size() > 0)
+  {
+    for (const std::string& str : localCache)
+    {
       PRINT_RESULT(str);
     }
     localCache.clear();
   }
-
 }
 
 // ==============================================================================================================================
-void TraceDebug::IncreaseDebugPrintDeepness() {
+void TraceDebug::IncreaseDebugPrintDeepness()
+{
 #ifdef ENABLE_THREAD_SAFE
   ++debugPrintDeepness[std::this_thread::get_id()];
 #else
@@ -303,7 +344,8 @@ void TraceDebug::IncreaseDebugPrintDeepness() {
 }
 
 // ==============================================================================================================================
-void TraceDebug::DecreaseDebugPrintDeepness() {
+void TraceDebug::DecreaseDebugPrintDeepness()
+{
 #ifdef ENABLE_THREAD_SAFE
   --debugPrintDeepness[std::this_thread::get_id()];
 #else
@@ -312,7 +354,8 @@ void TraceDebug::DecreaseDebugPrintDeepness() {
 }
 
 // ==============================================================================================================================
-unsigned int TraceDebug::GetDebugPrintDeepness() {
+unsigned int TraceDebug::GetDebugPrintDeepness()
+{
 #ifdef ENABLE_THREAD_SAFE
   return debugPrintDeepness[std::this_thread::get_id()];
 #else
@@ -321,9 +364,11 @@ unsigned int TraceDebug::GetDebugPrintDeepness() {
 }
 
 // ==============================================================================================================================
-unsigned int TraceDebug::GetAllDebugPrintDeepness() {
+unsigned int TraceDebug::GetAllDebugPrintDeepness()
+{
 #ifdef ENABLE_THREAD_SAFE
-  return std::accumulate(debugPrintDeepness.begin(), debugPrintDeepness.end(), 0,
+  return std::accumulate(
+          debugPrintDeepness.begin(), debugPrintDeepness.end(), 0,
                          [](unsigned int a, std::pair<std::thread::id, unsigned int> b) {
     return a + b.second;
   });
@@ -334,13 +379,18 @@ unsigned int TraceDebug::GetAllDebugPrintDeepness() {
 
 // ==============================================================================================================================
 #ifdef WRITE_OUTPUT_TO_FILE
-void TraceDebug::WriteToFile(const std::string& stringToWrite, const std::string& fileName) {
+void TraceDebug::WriteToFile(const std::string& stringToWrite,
+                             const std::string& fileName)
+{
   GET_THREAD_SAFE_GUARD;
-  if(!outputFile.is_open()) {
+  static Guard guardOnLeavingProgram;
+  if (!outputFile.is_open())
+  {
     // Search for a non existing filename
     std::string tmpFileName = fileName + "-" + std::to_string(GETPID);
     struct stat buffer;
-    for(int index = 0; stat(tmpFileName.c_str(), &buffer) == 0; ++index) {
+    for (int index = 0; stat(tmpFileName.c_str(), &buffer) == 0; ++index)
+    {
       tmpFileName = fileName + std::to_string(index);
     }
     outputFile.open(tmpFileName + ".log", std::ofstream::out);
@@ -361,24 +411,28 @@ void TraceDebug::WriteToFile(const std::string& stringToWrite, const std::string
 // Compile with gcc: 
 // g++ -std=c++11 -o TraceDebug TraceDebug.cpp -pthread
 #ifdef TRACE_DEBUG_HPP_DEBUG_LOCAL
-int f3() {
+int f3()
+{
   START_TRACE_PERFORMANCE(f3);
   int a = 5;
   DISPLAY_IMMEDIATE_DEBUG_VALUE(a);
   return a;
 }
-int f2() {
+int f2()
+{
   START_TRACE_PERFORMANCE(f2);
   DISPLAY_DEBUG_VALUE(f3());
   return 2;
 }
-int f1() {
+int f1()
+{
   START_TRACE_PERFORMANCE(f1);
   DISPLAY_DEBUG_VALUE(f2() - 1);
   return 1;
 }
 
-void test(std::string&& message) {
+void test(std::string&& message)
+{
   DISPLAY_DEBUG_MESSAGE(message);
   std::thread thread1(f1);
   START_TRACE_PERFORMANCE(test);
@@ -399,7 +453,7 @@ int main()
 /* This program will output:
 
  ****  Without cache enabled ****
-
+// >>>
 1469712120722.829346ms:139700164831104:TraceDebug.cpp:376 (test) [test]  Start measure
 1469712120722.878418ms:139700148037376:TraceDebug.cpp:368 (f1) [f1]  Start measure
   1469712120722.959717ms:139700148037376:Processing f2() - 1  From TraceDebug.cpp:369 (f1)
@@ -467,7 +521,6 @@ int main()
     1469712120724.578369ms:139700164831104:TraceDebug.cpp:363 (f2) [f2], <End measure> - <Start measure> = 0.073292ms
 1469712120724.594971ms:139700164831104:TraceDebug.cpp:376 (test) [test], <This is the middle> - <Start measure> = 0.402124ms, <End measure> - <This is the middle> = 0.094128ms, Full time: 0.496252ms
 */
+// <<<
 #endif
 #endif
-
-

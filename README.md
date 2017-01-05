@@ -51,6 +51,18 @@ Following macros are available:
       1469684456654.831543ms:140137838221056:TraceDebug.cpp:359 (f3)  a = 5
 ```
 
+## DISPLAY_IMMEDIATE_DEBUG_QT_VALUE(value)
+
+  
+```
+    Displays:
+      EpochSince1969:ThreadId:FileName:LineNumber (functionName) value = <ItsValue>
+        - EpochSince1969 is useful if many process are communicationg with each other to be able to understand synchronization problems.
+        - ThreadId is not displayed if ENABLE_THREAD_SAFE is not enabled.
+        - A number of blank spaces defining the deepness of the hierarchy will be displayed providing information on the hierarchical deepnes of the call.    
+        - ItsValue is converted through qDebug to a string allowing to display QMaps, or QVariants.
+```
+
 ## DISPLAY_DEBUG_VALUE(functionNameReturningAValue())
 
 ```
