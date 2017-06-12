@@ -404,10 +404,13 @@ void TraceDebug::WriteToFile(const std::string& stringToWrite,
 // ==============================================================================================================================
 
 // Compile with MSVC2013: 
-// cl /EHsc TraceDebug.cpp
+// cl /EHsc /DEBUG /Zi [/O2] TraceDebug.cpp
 // Compile with gcc: 
 // g++ -std=c++11 -o TraceDebug TraceDebug.cpp -pthread
 #ifdef TRACE_DEBUG_HPP_DEBUG_LOCAL
+#include <future>
+#include <ctime>
+std::mutex m_mutex;
 int f3()
 {
   START_TRACE_PERFORMANCE(f3);
@@ -421,103 +424,178 @@ int f2()
   DISPLAY_DEBUG_VALUE(f3());
   return 2;
 }
+
+// This fake functions is used to add traces when reverse engineering to Enterprise Architect 
+int before_f1_mutex()
+{
+  return std::rand() % 1000;
+}
+
+// This fake functions is used to add traces when reverse engineering to Enterprise Architect 
+int after_f1_mutex(int value)
+{
+  return std::rand() % 1000 + value;
+}
+
 int f1()
 {
+  auto value = before_f1_mutex();
+  std::lock_guard<std::mutex> lock(m_mutex);
+  value += after_f1_mutex(value);
   START_TRACE_PERFORMANCE(f1);
   DISPLAY_DEBUG_VALUE(f2() - 1);
-  return 1;
+  return value;
 }
 
 void test(std::string&& message)
 {
   DISPLAY_DEBUG_MESSAGE(message);
-  std::thread thread1(f1);
+  std::srand(std::time(0));
+  auto handle1 = std::async(std::launch::async, f1);
+  auto handle2 = std::async(std::launch::async, f1);
+  auto handle3 = std::async(std::launch::async, f1);
   START_TRACE_PERFORMANCE(test);
   DISPLAY_DEBUG_VALUE(f1());
   ADD_TRACE_PERFORMANCE(test, "This is the middle");
   f2();
-  thread1.join();
+  handle1.get();
+  handle2.get();
+  handle3.get();
+}
+
+// This fake functions is used to add traces when reverse engineering to Enterprise Architect 
+void starting_again()
+{
 }
 
 int main()
 {
-  SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(0);
-  test("\n\n\n ****  Without cache enabled **** \n");
-  SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(50);
-  test("\n\n\n ****  With cache enabled **** \n");
+  while(true)
+  {
+    starting_again();
+    std::cout << "Sleeping ..." << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::cout << " ... Done" << std::endl;
+    SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(0);
+    test("\n\n\n ****  Without cache enabled **** \n");
+    SET_TRACE_PERFORMANCE_CACHE_DEEPNESS(50);
+    test("\n\n\n ****  With cache enabled **** \n");
+  }
 }
 
 /* This program will output:
 
  ****  Without cache enabled ****
-// >>>
-1469712120722.829346ms:139700164831104:TraceDebug.cpp:376 (test) [test]  Start measure
-1469712120722.878418ms:139700148037376:TraceDebug.cpp:368 (f1) [f1]  Start measure
-  1469712120722.959717ms:139700148037376:Processing f2() - 1  From TraceDebug.cpp:369 (f1)
-    1469712120723.001465ms:139700148037376:TraceDebug.cpp:363 (f2) [f2]  Start measure
-      1469712120723.034180ms:139700148037376:Processing f3()  From TraceDebug.cpp:364 (f2)
-        1469712120723.078125ms:139700148037376:TraceDebug.cpp:357 (f3) [f3]  Start measure
-  1469712120723.059814ms:139700164831104:Processing f1()  From TraceDebug.cpp:377 (test)
-    1469712120723.146484ms:139700164831104:TraceDebug.cpp:368 (f1) [f1]  Start measure
-      1469712120723.190674ms:139700164831104:Processing f2() - 1  From TraceDebug.cpp:369 (f1)
-        1469712120723.224854ms:139700164831104:TraceDebug.cpp:363 (f2) [f2]  Start measure
-          1469712120723.250732ms:139700164831104:Processing f3()  From TraceDebug.cpp:364 (f2)
-            1469712120723.290527ms:139700164831104:TraceDebug.cpp:357 (f3) [f3]  Start measure
-          1469712120723.104248ms:139700148037376:TraceDebug.cpp:359 (f3)  a = 5
-        1469712120723.372314ms:139700148037376:TraceDebug.cpp:357 (f3) [f3], <Start measure> - <Start measure> = 0.214817ms, <End measure> - <Start measure> = 0.077399ms, Full time: 0.292216ms
-      1469712120723.428955ms:139700148037376:->TraceDebug.cpp:364 (f2)  f3() = 5
-    1469712120723.463867ms:139700148037376:TraceDebug.cpp:363 (f2) [f2], <Start measure> - <Start measure> = 0.228599ms, <End measure> - <Start measure> = 0.237513ms, Full time: 0.466112ms
-              1469712120723.441895ms:139700164831104:TraceDebug.cpp:359 (f3)  a = 5
-  1469712120723.500244ms:139700148037376:->TraceDebug.cpp:369 (f1)  f2() - 1 = 1
-1469712120723.575928ms:139700148037376:TraceDebug.cpp:368 (f1) [f1], <Start measure> - <Start measure> = 0.270867ms, <End measure> - <Start measure> = 0.429771ms, Full time: 0.700638ms
-          1469712120723.658691ms:139700164831104:->TraceDebug.cpp:364 (f2)  f3() = 5
-      1469712120723.706055ms:139700164831104:->TraceDebug.cpp:369 (f1)  f2() - 1 = 1
-  1469712120723.744141ms:139700164831104:->TraceDebug.cpp:377 (test)  f1() = 1
-    1469712120723.775146ms:139700164831104:TraceDebug.cpp:363 (f2) [f2]  Start measure
-      1469712120723.802246ms:139700164831104:Processing f3()  From TraceDebug.cpp:364 (f2)
-        1469712120723.857178ms:139700164831104:TraceDebug.cpp:357 (f3) [f3]  Start measure
-          1469712120723.883545ms:139700164831104:TraceDebug.cpp:359 (f3)  a = 5
-        1469712120723.910645ms:139700164831104:TraceDebug.cpp:357 (f3) [f3], <End measure> - <Start measure> = 0.055173ms
-      1469712120723.940918ms:139700164831104:->TraceDebug.cpp:364 (f2)  f3() = 5
-    1469712120723.966553ms:139700164831104:TraceDebug.cpp:363 (f2) [f2], <End measure> - <Start measure> = 0.190994ms
-1469712120724.017090ms:139700164831104:TraceDebug.cpp:376 (test) [test], <This is the middle> - <Start measure> = 0.943374ms, <End measure> - <This is the middle> = 0.248315ms, Full time: 1.191689ms
-1469712120724.057129ms:139700164831104:TraceDebug.cpp:374 (test)
+
+1497256660314.479492ms:6648:TraceDebug.cpp:457 (test) [test]  Start measure
+1497256660332.482910ms:2320:TraceDebug.cpp:445 (f1) [f1]  Start measure
+  1497256660332.482910ms:6648:Processing f1()  From TraceDebug.cpp:458 (test)
+  1497256660346.485840ms:2320:Processing f2() - 1  From TraceDebug.cpp:446 (f1)
+    1497256660379.492432ms:2320:TraceDebug.cpp:423 (f2) [f2]  Start measure
+      1497256660393.495117ms:2320:Processing f3()  From TraceDebug.cpp:424 (f2)
+        1497256660408.498291ms:2320:TraceDebug.cpp:416 (f3) [f3]  Start measure
+          1497256660427.501953ms:2320:TraceDebug.cpp:418 (f3)  a = 5
+        1497256660441.504883ms:2320:TraceDebug.cpp:416 (f3) [f3], <End measure> - <Start measure> = 32.918209ms
+      1497256660408.498291ms:2320:->TraceDebug.cpp:424 (f2)  f3() = 5
+    1497256660478.512207ms:2320:TraceDebug.cpp:423 (f2) [f2], <End measure> - <Start measure> = 98.423626ms
+  1497256660379.492432ms:2320:->TraceDebug.cpp:446 (f1)  f2() - 1 = 1
+1497256660515.519531ms:2320:TraceDebug.cpp:445 (f1) [f1], <End measure> - <Start measure> = 182.301203ms
+1497256660540.524658ms:6872:TraceDebug.cpp:445 (f1) [f1]  Start measure
+  1497256660559.528320ms:6872:Processing f2() - 1  From TraceDebug.cpp:446 (f1)
+    1497256660577.531982ms:6872:TraceDebug.cpp:423 (f2) [f2]  Start measure
+      1497256660594.535400ms:6872:Processing f3()  From TraceDebug.cpp:424 (f2)
+        1497256660608.538086ms:6872:TraceDebug.cpp:416 (f3) [f3]  Start measure
+          1497256660621.540771ms:6872:TraceDebug.cpp:418 (f3)  a = 5
+        1497256660636.543701ms:6872:TraceDebug.cpp:416 (f3) [f3], <End measure> - <Start measure> = 27.813547ms
+      1497256660608.538086ms:6872:->TraceDebug.cpp:424 (f2)  f3() = 5
+    1497256660669.550293ms:6872:TraceDebug.cpp:423 (f2) [f2], <End measure> - <Start measure> = 92.224794ms
+  1497256660577.531982ms:6872:->TraceDebug.cpp:446 (f1)  f2() - 1 = 1
+1497256660703.557129ms:6872:TraceDebug.cpp:445 (f1) [f1], <End measure> - <Start measure> = 162.611639ms
+1497256660723.561279ms:7316:TraceDebug.cpp:445 (f1) [f1]  Start measure
+  1497256660735.563721ms:7316:Processing f2() - 1  From TraceDebug.cpp:446 (f1)
+    1497256660750.566650ms:7316:TraceDebug.cpp:423 (f2) [f2]  Start measure
+      1497256660767.570068ms:7316:Processing f3()  From TraceDebug.cpp:424 (f2)
+        1497256660786.573730ms:7316:TraceDebug.cpp:416 (f3) [f3]  Start measure
+          1497256660800.576660ms:7316:TraceDebug.cpp:418 (f3)  a = 5
+        1497256660815.579590ms:7316:TraceDebug.cpp:416 (f3) [f3], <End measure> - <Start measure> = 28.510737ms
+      1497256660786.573730ms:7316:->TraceDebug.cpp:424 (f2)  f3() = 5
+    1497256660844.585449ms:7316:TraceDebug.cpp:423 (f2) [f2], <End measure> - <Start measure> = 94.334691ms
+  1497256660749.566406ms:7316:->TraceDebug.cpp:446 (f1)  f2() - 1 = 1
+1497256660869.590332ms:7316:TraceDebug.cpp:445 (f1) [f1], <End measure> - <Start measure> = 146.832130ms
+    1497256660883.593262ms:6648:TraceDebug.cpp:445 (f1) [f1]  Start measure
+      1497256660891.594727ms:6648:Processing f2() - 1  From TraceDebug.cpp:446 (f1)
+        1497256660900.596680ms:6648:TraceDebug.cpp:423 (f2) [f2]  Start measure
+          1497256660908.598145ms:6648:Processing f3()  From TraceDebug.cpp:424 (f2)
+            1497256660916.599854ms:6648:TraceDebug.cpp:416 (f3) [f3]  Start measure
+              1497256660925.601563ms:6648:TraceDebug.cpp:418 (f3)  a = 5
+            1497256660932.603027ms:6648:TraceDebug.cpp:416 (f3) [f3], <End measure> - <Start measure> = 15.942627ms
+          1497256660916.599854ms:6648:->TraceDebug.cpp:424 (f2)  f3() = 5
+        1497256660951.606689ms:6648:TraceDebug.cpp:423 (f2) [f2], <End measure> - <Start measure> = 51.503705ms
+      1497256660900.596680ms:6648:->TraceDebug.cpp:446 (f1)  f2() - 1 = 1
+    1497256660970.610596ms:6648:TraceDebug.cpp:445 (f1) [f1], <End measure> - <Start measure> = 86.397284ms
+  1497256660364.489502ms:6648:->TraceDebug.cpp:458 (test)  f1() = 940
+    1497256660992.614990ms:6648:TraceDebug.cpp:423 (f2) [f2]  Start measure
+      1497256661000.616699ms:6648:Processing f3()  From TraceDebug.cpp:424 (f2)
+        1497256661009.618408ms:6648:TraceDebug.cpp:416 (f3) [f3]  Start measure
+          1497256661017.620117ms:6648:TraceDebug.cpp:418 (f3)  a = 5
+        1497256661027.622070ms:6648:TraceDebug.cpp:416 (f3) [f3], <End measure> - <Start measure> = 18.031997ms
+      1497256661009.618408ms:6648:->TraceDebug.cpp:424 (f2)  f3() = 5
+    1497256661045.625488ms:6648:TraceDebug.cpp:423 (f2) [f2], <End measure> - <Start measure> = 52.701977ms
+1497256661056.627686ms:6648:TraceDebug.cpp:457 (test) [test], <This is the middle> - <Start measure> = 678.305191ms, <End measure> - <This is the middle> = 63.276756ms, Full time: 741.581947ms
+1497256661077.632080ms:6648:TraceDebug.cpp:452 (test)
 
 
  ****  With cache enabled ****
 
-1469712120724.100830ms:139700164831104:TraceDebug.cpp:376 (test) [test]  Start measure
-1469712120724.136475ms:139700148037376:TraceDebug.cpp:368 (f1) [f1]  Start measure
-  1469712120724.116211ms:139700164831104:Processing f1()  From TraceDebug.cpp:377 (test)
-    1469712120724.184082ms:139700164831104:TraceDebug.cpp:368 (f1) [f1]  Start measure
-  1469712120724.174561ms:139700148037376:Processing f2() - 1  From TraceDebug.cpp:369 (f1)
-    1469712120724.210693ms:139700148037376:TraceDebug.cpp:363 (f2) [f2]  Start measure
-      1469712120724.201416ms:139700164831104:Processing f2() - 1  From TraceDebug.cpp:369 (f1)
-        1469712120724.237305ms:139700164831104:TraceDebug.cpp:363 (f2) [f2]  Start measure
-      1469712120724.231201ms:139700148037376:Processing f3()  From TraceDebug.cpp:364 (f2)
-        1469712120724.264160ms:139700148037376:TraceDebug.cpp:357 (f3) [f3]  Start measure
-          1469712120724.280518ms:139700148037376:TraceDebug.cpp:359 (f3)  a = 5
-        1469712120724.300049ms:139700148037376:TraceDebug.cpp:357 (f3) [f3], <End measure> - <Start measure> = 0.036052ms
-          1469712120724.252197ms:139700164831104:Processing f3()  From TraceDebug.cpp:364 (f2)
-            1469712120724.332520ms:139700164831104:TraceDebug.cpp:357 (f3) [f3]  Start measure
-      1469712120724.319580ms:139700148037376:->TraceDebug.cpp:364 (f2)  f3() = 5
-    1469712120724.361816ms:139700148037376:TraceDebug.cpp:363 (f2) [f2], <Start measure> - <Start measure> = 0.029279ms, <End measure> - <Start measure> = 0.122675ms, Full time: 0.151954ms
-              1469712120724.351807ms:139700164831104:TraceDebug.cpp:359 (f3)  a = 5
-            1469712120724.396973ms:139700164831104:TraceDebug.cpp:357 (f3) [f3], <End measure> - <Start measure> = 0.065986ms
-  1469712120724.385254ms:139700148037376:->TraceDebug.cpp:369 (f1)  f2() - 1 = 1
-1469712120724.425537ms:139700148037376:TraceDebug.cpp:368 (f1) [f1], <Start measure> - <Start measure> = 0.052087ms, <End measure> - <Start measure> = 0.240887ms, Full time: 0.292974ms
-          1469712120724.415039ms:139700164831104:->TraceDebug.cpp:364 (f2)  f3() = 5
-      1469712120724.469238ms:139700164831104:->TraceDebug.cpp:369 (f1)  f2() - 1 = 1
-  1469712120724.490479ms:139700164831104:->TraceDebug.cpp:377 (test)  f1() = 1
-    1469712120724.505371ms:139700164831104:TraceDebug.cpp:363 (f2) [f2]  Start measure
-      1469712120724.517578ms:139700164831104:Processing f3()  From TraceDebug.cpp:364 (f2)
-        1469712120724.530518ms:139700164831104:TraceDebug.cpp:357 (f3) [f3]  Start measure
-          1469712120724.541748ms:139700164831104:TraceDebug.cpp:359 (f3)  a = 5
-        1469712120724.553223ms:139700164831104:TraceDebug.cpp:357 (f3) [f3], <End measure> - <Start measure> = 0.023913ms
-      1469712120724.565430ms:139700164831104:->TraceDebug.cpp:364 (f2)  f3() = 5
-    1469712120724.578369ms:139700164831104:TraceDebug.cpp:363 (f2) [f2], <End measure> - <Start measure> = 0.073292ms
-1469712120724.594971ms:139700164831104:TraceDebug.cpp:376 (test) [test], <This is the middle> - <Start measure> = 0.402124ms, <End measure> - <This is the middle> = 0.094128ms, Full time: 0.496252ms
+1497256661077.632080ms:6648:TraceDebug.cpp:457 (test) [test]  Start measure
+1497256661077.632080ms:7316:TraceDebug.cpp:445 (f1) [f1]  Start measure
+  1497256661077.632080ms:6648:Processing f1()  From TraceDebug.cpp:458 (test)
+  1497256661077.632080ms:7316:Processing f2() - 1  From TraceDebug.cpp:446 (f1)
+    1497256661077.632080ms:7316:TraceDebug.cpp:423 (f2) [f2]  Start measure
+      1497256661077.632080ms:7316:Processing f3()  From TraceDebug.cpp:424 (f2)
+        1497256661077.632080ms:7316:TraceDebug.cpp:416 (f3) [f3]  Start measure
+          1497256661077.632080ms:7316:TraceDebug.cpp:418 (f3)  a = 5
+        1497256661077.632080ms:7316:TraceDebug.cpp:416 (f3) [f3], <End measure> - <Start measure> = 0.056816ms
+      1497256661077.632080ms:7316:->TraceDebug.cpp:424 (f2)  f3() = 5
+    1497256661077.632080ms:7316:TraceDebug.cpp:423 (f2) [f2], <End measure> - <Start measure> = 0.146256ms
+  1497256661077.632080ms:7316:->TraceDebug.cpp:446 (f1)  f2() - 1 = 1
+1497256661077.632080ms:7316:TraceDebug.cpp:445 (f1) [f1], <End measure> - <Start measure> = 0.257322ms
+1497256661077.632080ms:2320:TraceDebug.cpp:445 (f1) [f1]  Start measure
+  1497256661077.632080ms:2320:Processing f2() - 1  From TraceDebug.cpp:446 (f1)
+    1497256661077.632080ms:2320:TraceDebug.cpp:423 (f2) [f2]  Start measure
+      1497256661077.632080ms:2320:Processing f3()  From TraceDebug.cpp:424 (f2)
+        1497256661077.632080ms:2320:TraceDebug.cpp:416 (f3) [f3]  Start measure
+          1497256661077.632080ms:2320:TraceDebug.cpp:418 (f3)  a = 5
+        1497256661077.632080ms:2320:TraceDebug.cpp:416 (f3) [f3], <End measure> - <Start measure> = 0.037388ms
+      1497256661077.632080ms:2320:->TraceDebug.cpp:424 (f2)  f3() = 5
+    1497256661077.632080ms:2320:TraceDebug.cpp:423 (f2) [f2], <End measure> - <Start measure> = 0.111066ms
+  1497256661077.632080ms:2320:->TraceDebug.cpp:446 (f1)  f2() - 1 = 1
+1497256661077.632080ms:2320:TraceDebug.cpp:445 (f1) [f1], <End measure> - <Start measure> = 0.188043ms
+    1497256661077.632080ms:6648:TraceDebug.cpp:445 (f1) [f1]  Start measure
+      1497256661077.632080ms:6648:Processing f2() - 1  From TraceDebug.cpp:446 (f1)
+        1497256661077.632080ms:6648:TraceDebug.cpp:423 (f2) [f2]  Start measure
+          1497256661077.632080ms:6648:Processing f3()  From TraceDebug.cpp:424 (f2)
+            1497256661077.632080ms:6648:TraceDebug.cpp:416 (f3) [f3]  Start measure
+              1497256661077.632080ms:6648:TraceDebug.cpp:418 (f3)  a = 5
+            1497256661077.632080ms:6648:TraceDebug.cpp:416 (f3) [f3], <End measure> - <Start measure> = 0.036289ms
+          1497256661077.632080ms:6648:->TraceDebug.cpp:424 (f2)  f3() = 5
+        1497256661077.632080ms:6648:TraceDebug.cpp:423 (f2) [f2], <End measure> - <Start measure> = 0.104102ms
+      1497256661077.632080ms:6648:->TraceDebug.cpp:446 (f1)  f2() - 1 = 1
+    1497256661077.632080ms:6648:TraceDebug.cpp:445 (f1) [f1], <End measure> - <Start measure> = 0.176680ms
+  1497256661077.632080ms:6648:->TraceDebug.cpp:458 (test)  f1() = 1696
+1497256661077.632080ms:6872:TraceDebug.cpp:445 (f1) [f1]  Start measure
+    1497256661077.632080ms:6648:TraceDebug.cpp:423 (f2) [f2]  Start measure
+  1497256661077.632080ms:6872:Processing f2() - 1  From TraceDebug.cpp:446 (f1)
+    1497256661077.632080ms:6872:TraceDebug.cpp:423 (f2) [f2]  Start measure
+      1497256661077.632080ms:6648:Processing f3()  From TraceDebug.cpp:424 (f2)
+      1497256661077.632080ms:6872:Processing f3()  From TraceDebug.cpp:424 (f2)
+        1497256661077.632080ms:6648:TraceDebug.cpp:416 (f3) [f3]  Start measure
+          1497256661078.632080ms:6648:TraceDebug.cpp:418 (f3)  a = 5
+        1497256661078.632080ms:6648:TraceDebug.cpp:416 (f3) [f3], <End measure> - <Start measure> = 0.055350ms
+        1497256661078.632080ms:6872:TraceDebug.cpp:416 (f3) [f3]  Start measure
+      1497256661077.632080ms:6648:->TraceDebug.cpp:424 (f2)  f3() = 5
+    1497256661078.632080ms:6648:TraceDebug.cpp:423 (f2) [f2], <Start measure> - <Start measure> = 0.039221ms, <End measure> - <Start measure> = 0.164584ms, Full time: 0.203805ms
+          1497256661078.632080ms:6872:TraceDebug.cpp:418 (f3)  a = 5
 */
-// <<<
 #endif
 #endif
